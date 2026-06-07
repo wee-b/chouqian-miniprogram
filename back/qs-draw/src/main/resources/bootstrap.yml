@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: qs-draw
+  cloud:
+    compatibility-verifier:
+      enabled: false
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        enabled: true

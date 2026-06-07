@@ -1,0 +1,31 @@
+server:
+  port: 8085
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: qs-client
+
+  profiles:
+    active: dev
+  config:
+    import: classpath:dev/base.yaml
+
+
+springdoc:
+  # Swagger UI 界面相关配置
+  swagger-ui:
+    path: /swagger-ui.html          # 1. 访问地址
+    tags-sorter: alpha              # 2. 接口标签排序
+    operations-sorter: alpha        # 3. 接口方法排序
+  # API 文档原始数据（给前端/网关用的JSON）
+  api-docs:
+#    path: /v3/api-docs/client              # 4. 接口文档JSON路径
+    enabled: true  # 只需要开启，不用写路径
+
+  # 接口分组（非常重要）
+  group-configs:
+    - group: 'client'              # 5. 分组名称
+      paths-to-match: '/**'         # 6. 匹配哪些URL路径
+      packages-to-scan: com.quickstart.client.module  # 7. 扫描哪个包下的接口

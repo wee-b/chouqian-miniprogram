@@ -1,0 +1,194 @@
+<!--pages/publish/publish.wxml-->
+
+<view wx:if="{{loading}}" class="loading-wrap">
+  <text>加载中...</text>
+</view>
+
+<scroll-view scroll-y class="page-scroll" wx:else>
+
+  <!-- ====== 步骤1：基本设置 ====== -->
+  <view class="sec-card">
+    <view class="sec-head">
+      <view class="step-badge">1</view>
+      <text class="sec-title">基本设置</text>
+    </view>
+
+    <view class="field">
+      <text class="field-label required">抽签标题</text>
+      <input class="field-input" placeholder="给抽签起个名字" value="{{title}}" bindinput="onTitleInput" maxlength="50" />
+    </view>
+
+    <view class="field">
+      <text class="field-label">封面图片</text>
+      <view class="cover-picker" bindtap="onChooseCover">
+        <image class="cover-preview" src="{{drawCover || '/images/default-draw.png'}}" mode="aspectFill" />
+        <view class="cover-mask">
+          <text>点击更换封面</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="field-label">抽签说明</text>
+      <textarea class="field-area" placeholder="描述活动详情（可选）" value="{{description}}" bindinput="onDescInput" maxlength="500" auto-height />
+    </view>
+  </view>
+
+  <!-- ====== 步骤2：抽签规则 ====== -->
+  <view class="sec-card">
+    <view class="sec-head">
+      <view class="step-badge">2</view>
+      <text class="sec-title">抽签规则</text>
+    </view>
+
+    <!-- 有无奖品 -->
+    <view class="field row">
+      <text class="field-label required">有无奖品</text>
+      <view class="switch-row">
+        <view class="switch-opt {{hasPrize === 0 ? 'on' : ''}}" bindtap="onHasPrizeChange" data-value="0">无奖品</view>
+        <view class="switch-opt {{hasPrize === 1 ? 'on' : ''}}" bindtap="onHasPrizeChange" data-value="1">有奖品</view>
+      </view>
+    </view>
+
+    <!-- 开奖方式 -->
+    <view class="field row">
+      <text class="field-label required">开奖方式</text>
+      <view class="switch-row">
+        <view class="switch-opt {{drawingWay === 0 ? 'on' : ''}}" bindtap="onDrawingWayChange" data-value="0">按时间</view>
+        <view class="switch-opt {{drawingWay === 1 ? 'on' : ''}}" bindtap="onDrawingWayChange" data-value="1">按人数</view>
+      </view>
+    </view>
+
+    <!-- 截止日期 -->
+    <view class="field row">
+      <text class="field-label required">截止日期</text>
+      <picker mode="date" value="{{deadlineDate}}" bindchange="onDeadlineDateChange">
+        <view class="picker-text">{{deadlineDate || '选择日期'}}</view>
+      </picker>
+    </view>
+
+    <!-- 截止时间 -->
+    <view class="field row">
+      <text class="field-label">截止时间</text>
+      <picker mode="time" value="{{deadlineTime}}" bindchange="onDeadlineTimeChange">
+        <view class="picker-text">{{deadlineTime || '23:59'}}</view>
+      </picker>
+    </view>
+
+    <!-- 每人签码数 -->
+    <view class="field row">
+      <text class="field-label">每人签码数</text>
+      <view class="stepper">
+        <view class="step-btn" bindtap="onPerCodeStep" data-delta="-1">-</view>
+        <input class="step-val" type="number" value="{{perCodeNum}}" bindinput="onPerCodeInput" />
+        <view class="step-btn" bindtap="onPerCodeStep" data-delta="1">+</view>
+      </view>
+    </view>
+
+    <!-- 最少人数 -->
+    <view class="field row" wx:if="{{drawingWay === 1}}">
+      <text class="field-label">最少人数</text>
+      <input class="field-input short" type="number" placeholder="0" value="{{minPerson}}" bindinput="onMinPersonInput" />
+    </view>
+  </view>
+
+  <!-- ====== 步骤3：奖品设置 ====== -->
+  <view class="sec-card" wx:if="{{hasPrize === 1}}">
+    <view class="sec-head">
+      <view class="step-badge">3</view>
+      <text class="sec-title">奖品设置</text>
+      <view class="sec-extra" bindtap="showAddPrize">+ 添加</view>
+    </view>
+
+    <!-- 已添加的奖品 -->
+    <view class="prize-item" wx:for="{{prizes}}" wx:key="index">
+      <view class="prize-rank rank-{{item.prizeType}}">{{item.prizeType > 3 ? '奖' : ''}}</view>
+      <view class="prize-body">
+        <text class="prize-name">{{item.prizeName}}</text>
+        <text class="prize-meta">{{item.prizeType === 1 ? '一等奖' : (item.prizeType === 2 ? '二等奖' : (item.prizeType === 3 ? '三等奖' : '其他奖'))}} · {{item.amount}}份</text>
+      </view>
+      <view class="prize-actions">
+        <text class="act-edit" bindtap="editPrize" data-index="{{index}}">编辑</text>
+        <text class="act-del" bindtap="removePrize" data-index="{{index}}">删除</text>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="prize-empty" wx:if="{{prizes.length === 0}}">
+      <text>暂无奖品，点击"+ 添加"</text>
+    </view>
+  </view>
+
+  <!-- 提交按钮 - 创建模式 -->
+  <view class="submit-wrap" wx:if="{{!editMode}}">
+    <view class="submit-row">
+      <button class="btn-draft" bindtap="handleSubmitDraft" loading="{{submitting}}">保存草稿</button>
+      <button class="btn-publish" bindtap="handleSubmitPublish" loading="{{submitting}}">保存并发布</button>
+    </view>
+  </view>
+
+  <!-- 提交按钮 - 编辑模式 -->
+  <view class="submit-wrap" wx:else>
+    <button class="btn-submit" bindtap="handleSubmit" loading="{{submitting}}">
+      保存修改
+    </button>
+  </view>
+
+</scroll-view>
+
+<!-- ====== 奖品编辑弹层 ====== -->
+<view class="pf-mask" wx:if="{{addingPrize}}" catchtap="hidePrizeForm"></view>
+<view class="pf-sheet" wx:if="{{addingPrize}}">
+  <view class="pf-head">
+    <text class="pf-title">{{editingPrizeIndex >= 0 ? '编辑奖品' : '添加奖品'}}</text>
+  </view>
+
+  <!-- 奖品名称 -->
+  <view class="pf-field">
+    <text class="pf-label">奖品名称</text>
+    <input class="pf-input" placeholder="输入奖品名称" value="{{prizeForm.prizeName}}" bindinput="onPrizeNameInput" />
+  </view>
+
+  <!-- 奖品封面 -->
+  <view class="pf-field">
+    <text class="pf-label">奖品封面</text>
+    <view class="cover-picker small" bindtap="onChoosePrizeCover">
+      <image class="cover-preview" src="{{prizeForm.prizeCover || '/images/default-draw.png'}}" mode="aspectFill" />
+      <view class="cover-mask">
+        <text>点击更换</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 奖品类型 - 步进器 -->
+  <view class="pf-field">
+    <text class="pf-label">奖品类型</text>
+    <view class="stepper-row">
+      <view class="step-btn" bindtap="onPrizeTypePrev">&lt;</view>
+      <text class="stepper-text">{{prizeTypeName}}</text>
+      <view class="step-btn" bindtap="onPrizeTypeNext">&gt;</view>
+    </view>
+  </view>
+
+  <!-- 数量 -->
+  <view class="pf-field">
+    <text class="pf-label">奖品数量</text>
+    <input class="pf-input short" type="number" value="{{prizeForm.amount}}" bindinput="onPrizeAmountInput" />
+  </view>
+
+  <!-- 发放方式 - 步进器 -->
+  <view class="pf-field">
+    <text class="pf-label">发放方式</text>
+    <view class="stepper-row">
+      <view class="step-btn" bindtap="onGiveawayPrev">&lt;</view>
+      <text class="stepper-text">{{prizeGiveawayName}}</text>
+      <view class="step-btn" bindtap="onGiveawayNext">&gt;</view>
+    </view>
+  </view>
+
+  <!-- 按钮 -->
+  <view class="pf-btns">
+    <button class="btn-pf cancel" bindtap="hidePrizeForm">取消</button>
+    <button class="btn-pf confirm" bindtap="savePrize">确定</button>
+  </view>
+</view>

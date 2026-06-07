@@ -1,0 +1,13 @@
+# Logs
+*.log
+spy.log
+
+# IDE
+.idea/
+
+# WeChat Mini Program
+front/project.private.config.json
+
+# OS
+.DS_Store
+Thumbs.db

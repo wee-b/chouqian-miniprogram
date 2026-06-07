@@ -1,0 +1,49 @@
+server:
+  port: 8086
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: qs-draw
+
+  profiles:
+    active: dev
+  config:
+    import: classpath:dev/base.yaml    # 复用 qs-common 的 common.yaml
+
+
+
+
+springdoc:
+  # Swagger UI 界面相关配置
+  swagger-ui:
+    path: /swagger-ui.html          # 1. 访问地址
+    tags-sorter: alpha              # 2. 接口标签排序
+    operations-sorter: alpha        # 3. 接口方法排序
+  # API 文档原始数据（给前端/网关用的JSON）
+  api-docs:
+#    path: /v3/api-docs/draw              # 4. 接口文档JSON路径
+#    path: /v3/api-docs             # 4. 接口文档JSON路径
+    enabled: true  # 只需要开启，不用写路径
+
+  # 接口分组（非常重要）
+  group-configs:
+    - group: 'draw'              # 5. 分组名称
+      paths-to-match: '/**'         # 6. 匹配哪些URL路径
+      packages-to-scan: com.quickstart.draw.module  # 7. 扫描哪个包下的接口
+
+
+#knife4j:
+#  gateway:
+#    # ① 第一个配置，开启gateway聚合组件
+#    enabled: true
+#    # ② 第二行配置，设置聚合模式采用discover服务发现的模式
+#    strategy: discover
+#    discover:
+#      # ③ 第三行配置，开启discover模式
+#      enabled: true
+#      # ④ 第四行配置，聚合子服务全部为Swagger2规范的文档
+#      version: openapi3
+
+

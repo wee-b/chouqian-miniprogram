@@ -1,0 +1,44 @@
+<!--pages/userInfo/userInfo.wxml-->
+<view class="userInfo-container">
+
+<!-- 头像区域 点击可修改 -->
+<view class="avatar-container" bindtap="changeAvatar">
+  <image class="avatar" src="{{isLogin ? userDetailInfo.avatarUrl : '/images/default-avatar.png'}}" />
+  <text wx:if="{{isLogin}}" class="tip">点击修改头像</text>
+</view>
+
+<!-- 信息卡片 -->
+<view class="info-card">
+  <view class="info-item" bindtap="changeNickName">
+    <text class="label">昵称</text>
+    <text class="value">{{isLogin ? userDetailInfo.nickName : '点击登录'}}</text>
+  </view>
+
+  <view class="info-item">
+    <text class="label">会员等级</text>
+    <text class="value">Lv{{userDetailInfo.level}}</text>
+  </view>
+
+  <view class="info-item" bindtap="changePhone">
+    <text class="label">手机号</text>
+    <text class="value">{{userDetailInfo.phone || '未设置'}}</text>
+  </view>
+
+  <view class="info-item">
+    <text class="label">会员编号</text>
+    <text class="value">{{userDetailInfo.memberCode || '未生成'}}</text>
+  </view>
+
+  <view class="info-item">
+    <text class="label">注册时间</text>
+    <text class="value">{{userDetailInfo.createTime || '未注册'}}</text>
+  </view>
+</view>
+
+<!-- 按钮 -->
+<view class="btn-box">
+  <button wx:if="{{!isLogin}}" type="primary" bindtap="goLogin">去登录</button>
+  <button wx:if="{{isLogin}}" type="warn" bindtap="logout">退出登录</button>
+</view>
+
+</view>

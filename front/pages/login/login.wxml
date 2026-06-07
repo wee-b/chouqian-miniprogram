@@ -1,0 +1,81 @@
+<!--pages/login/login.wxml-->
+<view class="login-page">
+
+  <!-- 品牌区 -->
+  <view class="brand-area">
+    <image class="brand-logo" src="/images/login-avatar.png" mode="aspectFit"></image>
+    <text class="brand-name">抽签</text>
+    <text class="brand-slogan">好运相伴，一抽即中</text>
+  </view>
+
+  <!-- 表单 -->
+  <view class="form-area">
+    <!-- 手机号 -->
+    <view class="input-group">
+      <image class="input-icon" src="/images/pages/login/phone.png" mode="aspectFit" />
+      <input
+        class="form-input"
+        type="number"
+        maxlength="11"
+        placeholder="请输入手机号"
+        value="{{account}}"
+        bindinput="onAccountInput"
+        placeholder-class="placeholder"
+      />
+    </view>
+
+    <!-- 密码 -->
+    <view class="input-group">
+      <image class="input-icon" src="/images/pages/login/password.png" mode="aspectFit" />
+      <input
+        class="form-input"
+        type="{{showPwd ? 'text' : 'password'}}"
+        maxlength="20"
+        placeholder="请输入密码"
+        value="{{pwd}}"
+        bindinput="onPwdInput"
+        placeholder-class="placeholder"
+      />
+      <image class="pwd-toggle" src="/images/pages/login/{{showPwd ? 'visual' : 'unvisual'}}.png" mode="aspectFit" bindtap="togglePwd" />
+    </view>
+
+    <!-- 登录按钮 -->
+    <button class="btn-login" bindtap="doLogin" loading="{{submitting}}" disabled="{{submitting}}">
+      登 录
+    </button>
+
+    <!-- 其他登录方式 -->
+    <view class="other-login">
+      <view class="divider">
+        <view class="divider-line"></view>
+        <text class="divider-text">其他方式登录</text>
+        <view class="divider-line"></view>
+      </view>
+      <view class="other-icons">
+        <view class="other-item">
+          <image class="other-icon" src="/images/pages/login/verifyCode.png" mode="aspectFit" />
+          <text>验证码登录</text>
+        </view>
+        <view class="other-item">
+          <image class="other-icon" src="/images/pages/login/email_login.png" mode="aspectFit" />
+          <text>邮箱登录</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 注册入口 -->
+    <view class="reg-entry">
+      <text>还没有账号？</text>
+      <text class="reg-link" bindtap="goRegister">立即注册</text>
+    </view>
+  </view>
+
+  <!-- 底部协议 -->
+  <view class="footer-tip">
+    <text>登录即同意</text>
+    <text class="footer-link">《用户协议》</text>
+    <text>和</text>
+    <text class="footer-link">《隐私政策》</text>
+  </view>
+
+</view>

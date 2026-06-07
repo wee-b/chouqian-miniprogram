@@ -1,0 +1,8 @@
+{
+  "setting": {
+    "es6": true,
+    "minifyWXML": true,
+    "urlCheck": false
+  },
+  "appid": ""
+}

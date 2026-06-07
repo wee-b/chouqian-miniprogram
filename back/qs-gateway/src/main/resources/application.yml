@@ -1,0 +1,67 @@
+server:
+  port: 8080
+
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+  application:
+    name: qs-gateway
+  profiles:
+    active: dev
+
+  data:
+    redis:
+      host: ${qs.redis.host:localhost}
+      port: ${qs.redis.port:6379}
+      database: ${qs.redis.database:0}
+      password: ${qs.redis.password:}
+
+  cloud:
+    compatibility-verifier:
+      enabled: false
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+    gateway:
+      routes:
+        # API 文档代理路由（StripPrefix 去掉服务前缀后转发给各自服务）
+        - id: qs-client-api-docs
+          uri: lb://qs-client
+          predicates:
+            - Path=/client/v3/api-docs/**
+          filters:
+            - StripPrefix=1
+        - id: qs-draw-api-docs
+          uri: lb://qs-draw
+          predicates:
+            - Path=/draw/v3/api-docs/**
+          filters:
+            - StripPrefix=1
+        # 抽奖服务
+        - id: qs-draw
+          uri: lb://qs-draw
+          predicates:
+            - Path=/client/draw/**, /client/drawCode/**, /client/prize/**
+        # 用户/系统服务（兜底）
+        - id: qs-client
+          uri: lb://qs-client
+          predicates:
+            - Path=/**
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+
+# SpringDoc 聚合（网关自身的 /v3/api-docs/swagger-config 列出所有服务）
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    urls:
+      - name: 用户与系统
+        url: /client/v3/api-docs/user
+      - name: 抽奖
+        url: /draw/v3/api-docs/draw

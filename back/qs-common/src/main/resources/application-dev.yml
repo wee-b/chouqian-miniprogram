@@ -1,0 +1,28 @@
+
+qs:
+  datasource:
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+    host: localhost
+    port: 3306
+    database: quick_start
+    username: root
+    password: 123
+
+  redis:
+    host: localhost
+    port: 6379
+    database: 10
+    password:
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: 123456
+    virtual-host: /
+
+    enabled: false
+
+  jwt:
+    secret: CHANGE_ME_TO_A_LONG_RANDOM_SECRET_KEY
+    expire-seconds: 86400

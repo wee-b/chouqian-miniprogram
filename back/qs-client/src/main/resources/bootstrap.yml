@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: qs-client
+  cloud:
+    compatibility-verifier:
+      enabled: false  # 关闭版本兼容性检查
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        enabled: true

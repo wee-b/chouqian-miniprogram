@@ -1,0 +1,73 @@
+<view class="mine-container">
+  <!-- 1. 个人信息卡片 -->
+  <view class="user-card" bindtap="goLogin">
+    <view class="user-info">
+      <image class="avatar" src="{{isLogin ? userInfo.avatarUrl : '/images/default-avatar.png'}}" />
+      <view class="user-text">
+        <view class="nickname-wrap">
+          <text class="nickname" wx:if="{{isLogin}}">{{userInfo.nickName}}</text>
+          <text class="login-txt" wx:else>点击登录</text>
+          <view class="level-tag" wx:if="{{isLogin && userInfo.level}}">Lv {{userInfo.level}}</view>
+        </view>
+        <text class="tip" wx:if="{{isLogin}}">欢迎使用抽签小程序</text>
+      </view>
+    </view>
+    <view class="wish-entry">
+      <view class="red-dot" wx:if="{{isLogin}}"></view>
+      <text wx:if="{{isLogin}}">心愿</text>
+      <image class="arrow" src="/images/icons/arrow-right.png" wx:if="{{isLogin}}" />
+    </view>
+  </view>
+
+  <!-- 2. 数据统计区 -->
+  <view class="stats-wrap" wx:if="{{isLogin}}">
+    <view class="stat-item" bindtap="handleStatTap" data-tab="0">
+      <text class="stat-num">{{stats.totalDraw}}</text>
+      <text class="stat-label">全部抽奖</text>
+    </view>
+    <view class="stat-item" bindtap="handleStatTap" data-tab="1">
+      <text class="stat-num">{{stats.initiatedDraw}}</text>
+      <text class="stat-label">发起抽奖</text>
+    </view>
+    <view class="stat-item" bindtap="handleStatTap" data-tab="2">
+      <text class="stat-num">{{stats.winRecord}}</text>
+      <text class="stat-label">中奖记录</text>
+    </view>
+  </view>
+
+  <!-- 未登录隐藏统计、只留登录入口 -->
+
+  <!-- 3. 活动 Banner -->
+  <view class="banner-wrap" bindtap="goToPublish">
+    <view class="banner-text">
+      <text class="banner-title">发起抽签，趣味互动</text>
+      <text class="banner-desc">免费创建专属抽签活动</text>
+    </view>
+    <view class="banner-btn">去发起抽奖 ></view>
+  </view>
+
+  <!-- 4. 功能图标区 第一行 -->
+  <view class="func-grid">
+    <view class="func-item" wx:for="{{funcList1}}" wx:key="id" bindtap="handleFuncTap" data-path="{{item.path}}">
+      <image class="func-icon" src="{{item.icon}}" />
+      <text class="func-name">{{item.name}}</text>
+    </view>
+  </view>
+
+  <!-- 功能图标区 第二行 -->
+  <view class="func-grid second-line">
+    <view class="func-item" wx:for="{{funcList2}}" wx:key="id" bindtap="handleFuncTap" data-path="{{item.path}}">
+      <image class="func-icon" src="{{item.icon}}" />
+      <text class="func-name">{{item.name}}</text>
+    </view>
+  </view>
+
+  <view class="func-grid " wx:if="{{isLogin}}">
+    <view class="logout-btn" bindtap="goLogout">退出登录</view>
+  </view>
+
+  <!-- 5. 底部版权信息 -->
+  <view class="copyright">
+    <text>— 抽签小程序 —</text>
+  </view>
+</view>

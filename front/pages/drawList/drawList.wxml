@@ -1,0 +1,46 @@
+<view class="page-container">
+  <!-- 标签栏 -->
+  <view class="tab-bar">
+    <view
+      class="tab-item {{activeTab === index ? 'tab-active' : ''}}"
+      wx:for="{{tabs}}"
+      wx:key="index"
+      data-index="{{index}}"
+      bindtap="switchTab"
+    >{{item}}</view>
+  </view>
+
+  <!-- 列表 -->
+  <scroll-view class="list-wrap" scroll-y="true" bindscrolltolower="loadMore" lower-threshold="100">
+    <view wx:if="{{list.length > 0}}">
+      <view
+        class="draw-item"
+        wx:for="{{list}}"
+        wx:key="drawId"
+        data-drawid="{{item.drawId}}"
+        bindtap="goDetail"
+      >
+        <image class="draw-cover" src="{{item.drawCover || '/images/default-draw.png'}}" mode="aspectFill" />
+        <view class="draw-info">
+          <view class="draw-title-row">
+            <text class="draw-title">{{item.title}}</text>
+            <text class="status-tag s{{item.status}}">{{item.statusText}}</text>
+          </view>
+        </view>
+        <image class="arrow-right" src="/images/icons/arrow-right.png" />
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="load-more">
+      <text wx:if="{{loading}}">加载中...</text>
+      <text wx:elif="{{!hasMore && list.length > 0}}">— 没有更多了 —</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-wrap" wx:if="{{empty && !loading}}">
+      <image class="empty-img" src="/images/default-draw.png" />
+      <text class="empty-text">暂无数据</text>
+    </view>
+  </scroll-view>
+</view>

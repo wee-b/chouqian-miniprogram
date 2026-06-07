@@ -1,0 +1,45 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/publish/publish",
+    "pages/mine/mine",
+    "pages/login/login",
+    "pages/register/register",
+    "pages/userInfo/userInfo",
+    "pages/draw/draw",
+    "pages/drawDetail/drawDetail",
+    "pages/drawList/drawList"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#96CDCD",
+    "navigationBarTextStyle": "black",
+    "navigationStyle": "custom"
+  },
+  "style": "v2",
+  "tabBar": {
+    "color": "#666666",           
+    "selectedColor": "#1677ff",    
+    "borderStyle": "black",        
+    "backgroundColor": "#ffffff",  
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/tabbar/home.png",
+        "selectedIconPath": "images/tabbar/home_select.png"
+      },
+      {
+        "pagePath": "pages/publish/publish",
+        "text": "发布",
+        "iconPath": "images/tabbar/publish.png",
+        "selectedIconPath": "images/tabbar/publish_select.png"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的",
+        "iconPath": "images/tabbar/me.png",
+        "selectedIconPath": "images/tabbar/me_select.png"
+      }
+    ]
+  }
+}

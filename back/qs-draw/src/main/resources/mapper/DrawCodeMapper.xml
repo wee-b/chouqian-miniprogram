@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 命名空间和你的 Mapper 接口全类名一致 -->
+<mapper namespace="com.quickstart.draw.module.drawCode.mapper.DrawCodeMapper">
+
+    <!-- 批量插入抽签参与码 -->
+    <insert id="batchInsert">
+        INSERT INTO qs_draw_code (
+        draw_code_id,
+        user_id,
+        draw_id,
+        prize_id,
+        code_value,
+        create_time
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.drawCodeId},
+            #{item.userId},
+            #{item.drawId},
+            #{item.prizeId},
+            #{item.codeValue},
+            #{item.createTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 批量查询数据库中已存在的抽奖码 -->
+    <select id="selectCodesByBatch" resultType="java.lang.String">
+        SELECT code_value
+        FROM qs_draw_code
+        WHERE code_value IN
+        <foreach collection="codeList" item="code" open="(" separator="," close=")">
+            #{code}
+        </foreach>
+    </select>
+
+</mapper>

@@ -1,0 +1,335 @@
+<!--pages/drawDetail/drawDetail.wxml-->
+
+<view wx:if="{{loading}}" class="loading-wrap">
+  <view class="loading-spinner"></view>
+  <text>加载中...</text>
+</view>
+
+<block wx:elif="{{drawInfo}}">
+
+  <!-- ========== 封面区域 ========== -->
+  <view class="cover-wrap">
+    <image class="cover-img" src="{{editForm.drawCover || drawInfo.drawCover || '/images/default-draw.png'}}" mode="aspectFill" binderror="onCoverError" />
+    <view class="cover-overlay"></view>
+    <view class="cover-info">
+      <view class="status-badge {{statusClass}}">{{statusText}}</view>
+      <!-- 编辑模式：标题可输入 -->
+      <block wx:if="{{isEditing}}">
+        <input class="cover-title-input" placeholder="输入抽签标题" value="{{editForm.title}}" bindinput="onEditTitleInput" maxlength="50" />
+        <view class="cover-change" bindtap="onChooseCover">
+          <text>点击更换封面</text>
+        </view>
+      </block>
+      <block wx:else>
+        <text class="cover-title">{{drawInfo.title}}</text>
+      </block>
+      <!-- 描述 -->
+      <block wx:if="{{isEditing}}">
+        <textarea class="cover-desc-input" placeholder="描述活动详情（可选）" value="{{editForm.description}}" bindinput="onEditDescInput" maxlength="500" auto-height />
+      </block>
+      <block wx:elif="{{drawInfo.description}}">
+        <text class="cover-desc">{{drawInfo.description}}</text>
+      </block>
+    </view>
+  </view>
+
+  <!-- ========== 统计条 ========== -->
+  <view class="stats-bar">
+    <view class="stat">
+      <text class="stat-val">{{prizeCount}}</text>
+      <text class="stat-label">奖品</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat">
+      <text class="stat-val">{{drawInfo.participantCount || 0}}</text>
+      <text class="stat-label">参与人数</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat">
+      <text class="stat-val">{{drawInfo.perCodeNum || 0}}</text>
+      <text class="stat-label">每人签码</text>
+    </view>
+  </view>
+
+  <!-- ========== 规则区域 ========== -->
+  <!-- 编辑模式 -->
+  <block wx:if="{{isEditing}}">
+    <view class="edit-section">
+      <view class="section-head">
+        <text class="section-title">抽签规则</text>
+      </view>
+
+      <view class="edit-row">
+        <text class="edit-label">有无奖品</text>
+        <view class="switch-row">
+          <view class="switch-opt {{editForm.hasPrize === 0 ? 'on' : ''}}" bindtap="onEditHasPrize" data-value="0">无奖品</view>
+          <view class="switch-opt {{editForm.hasPrize === 1 ? 'on' : ''}}" bindtap="onEditHasPrize" data-value="1">有奖品</view>
+        </view>
+      </view>
+
+      <view class="edit-row">
+        <text class="edit-label">开奖方式</text>
+        <view class="switch-row">
+          <view class="switch-opt {{editForm.drawingWay === 0 ? 'on' : ''}}" bindtap="onEditDrawingWay" data-value="0">按时间</view>
+          <view class="switch-opt {{editForm.drawingWay === 1 ? 'on' : ''}}" bindtap="onEditDrawingWay" data-value="1">按人数</view>
+        </view>
+      </view>
+
+      <view class="edit-row">
+        <text class="edit-label">截止日期</text>
+        <picker mode="date" value="{{editForm.deadlineDate}}" bindchange="onEditDeadlineDate">
+          <view class="picker-text">{{editForm.deadlineDate || '选择日期'}}</view>
+        </picker>
+      </view>
+
+      <view class="edit-row">
+        <text class="edit-label">截止时间</text>
+        <picker mode="time" value="{{editForm.deadlineTime}}" bindchange="onEditDeadlineTime">
+          <view class="picker-text">{{editForm.deadlineTime || '23:59'}}</view>
+        </picker>
+      </view>
+
+      <view class="edit-row">
+        <text class="edit-label">每人签码数</text>
+        <view class="stepper">
+          <view class="step-btn" bindtap="onEditPerCodeStep" data-delta="-1">-</view>
+          <input class="step-val" type="number" value="{{editForm.perCodeNum}}" bindinput="onEditPerCodeInput" />
+          <view class="step-btn" bindtap="onEditPerCodeStep" data-delta="1">+</view>
+        </view>
+      </view>
+
+      <view class="edit-row" wx:if="{{editForm.drawingWay === 1}}">
+        <text class="edit-label">最少人数</text>
+        <input class="edit-input short" type="number" placeholder="0" value="{{editForm.minPerson}}" bindinput="onEditMinPerson" />
+      </view>
+    </view>
+  </block>
+
+  <!-- 查看模式 -->
+  <block wx:else>
+    <view class="detail-section">
+      <view class="detail-row">
+        <text class="detail-label">开奖方式</text>
+        <text class="detail-val">{{wayText}}</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">参与截止</text>
+        <text class="detail-val">{{deadlineText}}</text>
+      </view>
+      <view class="detail-row" wx:if="{{drawInfo.minPerson > 0}}">
+        <text class="detail-label">最少人数</text>
+        <text class="detail-val">{{drawInfo.minPerson}} 人</text>
+      </view>
+      <view class="detail-row" wx:if="{{drawInfo.drawNo}}">
+        <text class="detail-label">编号</text>
+        <text class="detail-val mono">{{drawInfo.drawNo}}</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- ========== 创建者管理 ========== -->
+  <view class="manage-section" wx:if="{{isOwner && !isEditing && (drawInfo.status === 0 || drawInfo.status === 1)}}">
+    <view class="section-head">
+      <text class="section-title">管理</text>
+    </view>
+    <view class="manage-grid">
+      <view class="manage-item" wx:if="{{drawInfo.status === 0}}" bindtap="handleEdit">
+        <view class="manage-icon edit-icon"></view>
+        <text class="manage-label">编辑</text>
+      </view>
+      <view class="manage-item" bindtap="handleQueryPassCode">
+        <view class="manage-icon code-icon"></view>
+        <text class="manage-label">口令</text>
+      </view>
+    </view>
+    <view class="manage-delete" wx:if="{{drawInfo.status === 0}}" bindtap="handleDelete">
+      <text class="delete-text">删除此抽签</text>
+    </view>
+  </view>
+
+  <!-- ========== 奖品区域 ========== -->
+  <view class="prize-section" wx:if="{{prizes.length > 0 || (isEditing && editForm.hasPrize === 1)}}">
+    <view class="section-head">
+      <text class="section-title">奖品一览</text>
+      <text class="section-sub" wx:if="{{!isEditing}}">共 {{prizeCount}} 个奖项</text>
+      <text class="section-sub add-prize-btn" wx:if="{{isEditing}}" bindtap="showAddPrize">+ 添加奖品</text>
+    </view>
+
+    <view class="prize-card" wx:for="{{isEditing ? editForm.prizes : prizes}}" wx:key="index">
+      <view class="prize-rank rank-{{item.prizeType}}">{{item.typeName || ('奖品' + (index + 1))}}</view>
+      <image class="prize-img" src="{{item.prizeCover || '/images/default-draw.png'}}" mode="aspectFill" binderror="onPrizeImgError" data-index="{{index}}" />
+      <view class="prize-body">
+        <text class="prize-name">{{item.prizeName}}</text>
+        <view class="prize-meta">
+          <text class="prize-amount">x{{item.amount}}</text>
+          <text class="prize-giveaway">{{item.giveaway === 1 ? '快递邮寄' : (item.giveaway === 2 ? '联系发布者' : (item.giveaway === 3 ? '填写信息' : '其他'))}}</text>
+        </view>
+      </view>
+      <view class="prize-edit-actions" wx:if="{{isEditing}}">
+        <text class="act-edit" bindtap="editPrize" data-index="{{index}}">编辑</text>
+        <text class="act-del" bindtap="removePrize" data-index="{{index}}">删除</text>
+      </view>
+    </view>
+
+    <view class="prize-empty" wx:if="{{isEditing && editForm.prizes.length === 0}}">
+      <text>暂无奖品，点击"+ 添加奖品"添加</text>
+    </view>
+  </view>
+
+  <!-- ========== 我的签码 ========== -->
+  <view class="code-section" wx:if="{{!isEditing && joined && myCodes.length > 0}}">
+    <view class="section-head">
+      <text class="section-title">我的签码</text>
+      <text class="section-sub">共 {{codeCount}} 个</text>
+    </view>
+    <view class="code-grid">
+      <view class="code-chip" wx:for="{{myCodes}}" wx:key="index">
+        <text class="chip-val">{{item.codeValue || item}}</text>
+        <text class="chip-desc" wx:if="{{item.desc}}">{{item.desc}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ========== 中奖名单 ========== -->
+  <view class="winner-section" wx:if="{{!isEditing && winners.length > 0}}">
+    <view class="section-head">
+      <text class="section-title">中奖名单</text>
+      <text class="section-sub">共 {{winners.length}} 人中奖</text>
+    </view>
+    <view class="winner-card" wx:for="{{winners}}" wx:key="index">
+      <image class="winner-avatar" src="{{item.avatar || '/images/default-draw.png'}}" mode="aspectFill" />
+      <view class="winner-body">
+        <text class="winner-name">{{item.userName}}</text>
+        <text class="winner-code">签码：{{item.codeValue}}</text>
+      </view>
+      <view class="winner-prize rank-{{item.prizeType}}">{{item.prizeName || '幸运儿'}}</view>
+    </view>
+  </view>
+
+  <!-- 底部占位 -->
+  <view class="bottom-spacer"></view>
+
+  <!-- ========== 底栏：仅主操作按钮 ========== -->
+  <!-- 编辑模式 -->
+  <view class="bottom-bar" wx:if="{{isEditing}}">
+    <view class="edit-btns">
+      <button class="btn-edit-cancel" bindtap="handleCancelEdit">取消</button>
+      <button class="btn-edit-save" bindtap="handleSaveEdit" loading="{{savingEdit}}">保存修改</button>
+    </view>
+  </view>
+
+  <!-- 创建者：发布/开奖 -->
+  <view class="bottom-bar" wx:elif="{{isOwner && !isEditing}}">
+    <button class="btn-main" wx:if="{{drawInfo.status === 0}}" bindtap="handlePublish">立即发布</button>
+    <button class="btn-main" wx:if="{{drawInfo.status === 1}}" bindtap="handleOpenDraw">立即开奖</button>
+    <view class="joined-bar" wx:if="{{drawInfo.status === 2}}">
+      <text class="joined-text result">已开奖 · 请查看结果</text>
+    </view>
+    <view class="joined-bar" wx:if="{{drawInfo.status === 3}}">
+      <text class="joined-text closed">该抽签已流局</text>
+    </view>
+  </view>
+
+  <!-- 参与者 -->
+  <view class="bottom-bar" wx:else>
+    <button class="btn-main" wx:if="{{!joined && drawInfo.status === 1}}" bindtap="handleJoin">立即参与</button>
+    <view class="joined-bar" wx:if="{{joined && drawInfo.status === 1}}">
+      <text class="joined-text">已参与 · 等待开奖</text>
+    </view>
+    <view class="joined-bar" wx:if="{{drawInfo.status === 2}}">
+      <text class="joined-text result">已开奖 · 请查看结果</text>
+    </view>
+    <view class="joined-bar" wx:if="{{drawInfo.status === 3}}">
+      <text class="joined-text closed">该抽签已流局</text>
+    </view>
+  </view>
+
+</block>
+
+<block wx:elif="{{!loading}}">
+  <view class="empty-wrap">
+    <view class="empty-icon">?</view>
+    <text>抽签不存在或已删除</text>
+  </view>
+</block>
+
+<!-- ========== 口令弹窗 ========== -->
+<view class="modal-mask" wx:if="{{showPassCodeModal}}" catchtap="closePassCodeModal"></view>
+<view class="modal-box" wx:if="{{showPassCodeModal}}">
+  <view class="modal-head">
+    <text class="modal-title">口令管理</text>
+    <text class="modal-close" bindtap="closePassCodeModal">×</text>
+  </view>
+
+  <block wx:if="{{passCodeInfo && passCodeInfo.passCode}}">
+    <view class="pc-display">
+      <text class="pc-hint">当前口令</text>
+      <text class="pc-code">{{passCodeInfo.passCode}}</text>
+      <text class="pc-expire">剩余 {{passCodeExpireText}}</text>
+    </view>
+    <button class="btn-modal danger" bindtap="handleBanPassCode">禁用口令</button>
+  </block>
+
+  <block wx:else>
+    <view class="pc-gen">
+      <text class="pc-gen-label">有效期</text>
+      <input class="pc-gen-input" type="number" value="{{passCodeExpireHours}}" bindinput="onPassCodeExpireInput" />
+      <text class="pc-gen-unit">小时</text>
+    </view>
+    <button class="btn-modal primary" bindtap="handleGeneratePassCode" loading="{{generating}}">生成口令</button>
+  </block>
+
+  <view class="modal-divider"></view>
+  <button class="btn-modal cancel" bindtap="closePassCodeModal">关闭</button>
+</view>
+
+<!-- ========== 奖品编辑弹层 ========== -->
+<view class="pf-mask" wx:if="{{addingPrize}}" catchtap="hidePrizeForm"></view>
+<view class="pf-sheet" wx:if="{{addingPrize}}">
+  <view class="pf-head">
+    <text class="pf-title">{{editingPrizeIndex >= 0 ? '编辑奖品' : '添加奖品'}}</text>
+  </view>
+
+  <view class="pf-field">
+    <text class="pf-label">奖品名称</text>
+    <input class="pf-input" placeholder="输入奖品名称" value="{{prizeForm.prizeName}}" bindinput="onPrizeNameInput" />
+  </view>
+
+  <view class="pf-field">
+    <text class="pf-label">奖品封面</text>
+    <view class="cover-picker small" bindtap="onChoosePrizeCover">
+      <image class="cover-preview" src="{{prizeForm.prizeCover || '/images/default-draw.png'}}" mode="aspectFill" />
+      <view class="cover-mask">
+        <text>点击更换</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="pf-field">
+    <text class="pf-label">奖品类型</text>
+    <view class="stepper-row">
+      <view class="step-btn" bindtap="onPrizeTypePrev">&lt;</view>
+      <text class="stepper-text">{{prizeTypeName}}</text>
+      <view class="step-btn" bindtap="onPrizeTypeNext">&gt;</view>
+    </view>
+  </view>
+
+  <view class="pf-field">
+    <text class="pf-label">奖品数量</text>
+    <input class="pf-input short" type="number" value="{{prizeForm.amount}}" bindinput="onPrizeAmountInput" />
+  </view>
+
+  <view class="pf-field">
+    <text class="pf-label">发放方式</text>
+    <view class="stepper-row">
+      <view class="step-btn" bindtap="onGiveawayPrev">&lt;</view>
+      <text class="stepper-text">{{prizeGiveawayName}}</text>
+      <view class="step-btn" bindtap="onGiveawayNext">&gt;</view>
+    </view>
+  </view>
+
+  <view class="pf-btns">
+    <button class="btn-pf cancel" bindtap="hidePrizeForm">取消</button>
+    <button class="btn-pf confirm" bindtap="savePrize">确定</button>
+  </view>
+</view>

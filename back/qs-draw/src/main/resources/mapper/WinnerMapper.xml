@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.quickstart.draw.module.drawCode.mapper.WinnerMapper">
+
+    <insert id="batchInsert" useGeneratedKeys="true" keyProperty="winnerId">
+        INSERT INTO qs_winner (
+            user_id,
+            draw_id,
+            prize_id,
+            winner_code_id,
+            user_name,
+            avatar
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.userId},
+                #{item.drawId},
+                #{item.prizeId},
+                #{item.winnerCodeId},
+                #{item.userName},
+                #{item.avatar}
+            )
+        </foreach>
+    </insert>
+
+    <select id="selectWinnersByDrawId" resultType="com.quickstart.common.domain.winner.vo.WinnerVO">
+        SELECT
+            w.user_name AS userName,
+            w.avatar,
+            p.prize_name AS prizeName,
+            p.prize_type AS prizeType,
+            dc.code_value AS codeValue
+        FROM qs_winner w
+        LEFT JOIN qs_prize p ON p.prize_id = w.prize_id
+        LEFT JOIN qs_draw_code dc ON dc.draw_code_id = w.winner_code_id
+        WHERE w.draw_id = #{drawId}
+        ORDER BY p.prize_type ASC
+    </select>
+
+</mapper>

@@ -1,0 +1,93 @@
+<!--pages/register/register.wxml-->
+<view class="reg-page">
+
+  <!-- 头部 -->
+  <view class="reg-header">
+    <text class="reg-title">创建账号</text>
+    <text class="reg-desc">加入抽签，好运即刻开始</text>
+  </view>
+
+  <!-- 表单 -->
+  <view class="form-area">
+    <!-- 手机号 -->
+    <view class="input-group">
+      <image class="input-icon" src="/images/pages/login/phone.png" mode="aspectFit" />
+      <input
+        class="form-input"
+        type="number"
+        maxlength="11"
+        placeholder="请输入手机号"
+        value="{{phone}}"
+        bindinput="onPhoneInput"
+        placeholder-class="placeholder"
+      />
+    </view>
+
+    <!-- 昵称 -->
+    <view class="input-group">
+      <image class="input-icon" src="/images/pages/login/username_input.png" mode="aspectFit" />
+      <input
+        class="form-input"
+        type="text"
+        maxlength="20"
+        placeholder="设置昵称"
+        value="{{userName}}"
+        bindinput="onUserNameInput"
+        placeholder-class="placeholder"
+      />
+    </view>
+
+    <!-- 密码 -->
+    <view class="input-group">
+      <image class="input-icon" src="/images/pages/login/password.png" mode="aspectFit" />
+      <input
+        class="form-input"
+        type="{{showPwd ? 'text' : 'password'}}"
+        maxlength="20"
+        placeholder="设置密码（6-20位）"
+        value="{{pwd}}"
+        bindinput="onPwdInput"
+        placeholder-class="placeholder"
+      />
+      <image class="pwd-toggle" src="/images/pages/login/{{showPwd ? 'visual' : 'unvisual'}}.png" mode="aspectFit" bindtap="togglePwd" />
+    </view>
+
+    <!-- 确认密码 -->
+    <view class="input-group">
+      <image class="input-icon" src="/images/pages/login/password.png" mode="aspectFit" />
+      <input
+        class="form-input"
+        type="{{showConfirmPwd ? 'text' : 'password'}}"
+        maxlength="20"
+        placeholder="确认密码"
+        value="{{confirmPwd}}"
+        bindinput="onConfirmPwdInput"
+        placeholder-class="placeholder"
+      />
+      <image class="pwd-toggle" src="/images/pages/login/{{showConfirmPwd ? 'visual' : 'unvisual'}}.png" mode="aspectFit" bindtap="toggleConfirmPwd" />
+    </view>
+
+    <!-- 用户协议 -->
+    <view class="terms-row" bindtap="toggleAgree">
+      <view class="checkbox {{agreeTerms ? 'checked' : ''}}">
+        <text wx:if="{{agreeTerms}}">&#x2714;</text>
+      </view>
+      <text class="terms-text">我已阅读并同意</text>
+      <text class="terms-link">《用户协议》</text>
+      <text class="terms-text">和</text>
+      <text class="terms-link">《隐私政策》</text>
+    </view>
+
+    <!-- 注册按钮 -->
+    <button class="btn-register" bindtap="doRegister" loading="{{submitting}}" disabled="{{submitting}}">
+      注 册
+    </button>
+
+    <!-- 登录入口 -->
+    <view class="login-entry">
+      <text>已有账号？</text>
+      <text class="login-link" bindtap="goLogin">立即登录</text>
+    </view>
+  </view>
+
+</view>

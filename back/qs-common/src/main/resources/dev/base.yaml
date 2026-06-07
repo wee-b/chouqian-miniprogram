@@ -1,0 +1,48 @@
+spring:
+  tomcat:
+    threads:
+      max: 200  # 限制线程数，降低CPU消耗
+    connection-timeout: 20000  # 缩短连接超时，释放资源
+  profiles:
+    active: dev
+
+  security:
+    user:
+      name: admin
+      password: 123456
+
+  datasource:
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+    url: jdbc:p6spy:mysql://${qs.datasource.host}:${qs.datasource.port}/${qs.datasource.database}?characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${qs.datasource.username}
+    password: ${qs.datasource.password}
+
+  # Redis 配置
+  data:
+    redis:
+      host: ${qs.redis.host}
+      port: ${qs.redis.port}
+      database: ${qs.redis.database}
+#      password: ${qs.redis.password}
+  rabbitmq:
+    host: ${qs.rabbitmq.host}
+    port: ${qs.rabbitmq.port}
+    username: ${qs.rabbitmq.username}
+    password: ${qs.rabbitmq.password}
+    virtual-host: ${qs.rabbitmq.virtual-host}
+
+
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml  # Mapper.xml 文件路径
+  configuration:
+    # 关闭 MyBatis 原生控制台日志（关键）
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl # 日志
+  global-config:
+    db-config:
+      logic-delete-field: delFlag
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      id-type: auto
+
+

@@ -1,0 +1,134 @@
+<!--pages/index/index.wxml-->
+
+<!-- 状态栏 -->
+<view class="status-bar" style="height: {{statusBarHeight}}px; background: rgba(255,255,255,{{navBgOpacity}});"></view>
+
+<!-- 导航栏：渐变半透明 → 白底，按钮在 quick-bar 消失后显示 -->
+<view
+  class="navbar"
+  style="height: {{navBarHeight}}px; top: {{statusBarHeight}}px; background: rgba(255,255,255,{{navBgOpacity}});"
+>
+  <view class="nav-btns {{showNavBtns ? 'nav-btns-show' : ''}}">
+    <view class="nav-btn" bindtap="goCheckIn">签到</view>
+    <view class="nav-btn" bindtap="goPassCode">口令</view>
+  </view>
+</view>
+
+<scroll-view
+  scroll-y
+  enhanced
+  show-scrollbar="{{false}}"
+  bindscroll="onPageScroll"
+  refresher-enabled
+  refresher-triggered="{{loading && drawList.length > 0}}"
+  bindrefresherrefresh="onPullDownRefresh"
+  class="page-scroll"
+>
+
+  <!-- 占位 -->
+  <view style="height: {{navBarHeight}}px;"></view>
+
+  <!-- Hero 区域 -->
+  <view class="hero">
+    <view class="hero-content">
+      <text class="hero-title">官方抽签</text>
+      <text class="hero-desc">随心抽签 · 好运相伴</text>
+    </view>
+    <!-- 装饰圆 -->
+    <view class="hero-circle c1"></view>
+    <view class="hero-circle c2"></view>
+  </view>
+
+  <!-- 快捷入口 -->
+  <view class="quick-bar">
+    <view class="quick-item" bindtap="goPassCode">
+      <image class="quick-icon" src="/images/pages/index/temporary_code.png" mode="aspectFit" />
+      <text class="quick-text">口令参与</text>
+    </view>
+    <view class="quick-item" bindtap="goCheckIn">
+      <image class="quick-icon" src="/images/pages/index/checkin.png" mode="aspectFit" />
+      <text class="quick-text">每日签到</text>
+    </view>
+  </view>
+
+  <!-- 轮播图 -->
+  <view class="banner-section" wx:if="{{banners.length > 0}}">
+    <text class="banner-title">官方大奖</text>
+    <view class="banner-wrap">
+      <swiper
+        class="banner-swiper"
+        indicator-dots
+        indicator-active-color="#fff"
+        indicator-color="rgba(255,255,255,0.4)"
+        autoplay
+        circular
+        interval="4000"
+        duration="400"
+      >
+        <swiper-item wx:for="{{banners}}" wx:key="index">
+          <view class="banner-slide">
+            <image class="banner-img" src="{{item.image}}" mode="aspectFill" binderror="onBannerError" data-index="{{index}}" />
+            <view class="banner-label">{{item.title}}</view>
+          </view>
+        </swiper-item>
+      </swiper>
+    </view>
+  </view>
+
+  <!-- 活动标题 -->
+  <view class="section-header">
+    <text class="section-title">热门活动</text>
+    <text class="section-count" wx:if="{{!loading}}">共 {{drawList.length}} 个</text>
+  </view>
+
+  <!-- 骨架屏 -->
+  <view class="skeleton-wrap" wx:if="{{loading && drawList.length === 0}}">
+    <view class="skeleton-card" wx:for="{{[1,2,3]}}" wx:key="*this">
+      <view class="sk-img"></view>
+      <view class="sk-info">
+        <view class="sk-line w80"></view>
+        <view class="sk-line w50"></view>
+        <view class="sk-line w30"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-wrap" wx:elif="{{drawList.length === 0}}">
+    <view class="empty-icon">&#x1f3af;</view>
+    <text class="empty-title">暂无抽签活动</text>
+    <text class="empty-desc">敬请期待更多精彩活动</text>
+  </view>
+
+  <!-- 卡片列表 -->
+  <view class="card-list" wx:else>
+    <view
+      class="draw-card"
+      wx:for="{{drawList}}"
+      wx:key="drawId"
+      bindtap="goDetail"
+      data-id="{{item.drawId}}"
+    >
+      <view class="card-img-wrap">
+        <image class="card-img" src="{{item.drawCover || '/images/default-draw.png'}}" mode="aspectFill" lazy-load binderror="onCoverError" data-index="{{index}}" />
+        <view class="card-badge" wx:if="{{item.publisherMCode}}">
+          <image class="badge-avatar" src="{{item.publisherAvatar || '/images/default-avatar.png'}}" binderror="onAvatarError" data-index="{{index}}" />
+          <text>{{item.publisherMCode}}</text>
+        </view>
+      </view>
+      <view class="card-body">
+        <text class="card-title">{{item.title}}</text>
+        <view class="card-meta" wx:if="{{item.participantCount != null}}">
+          <text class="meta-participants">{{item.participantCount}} 人参与</text>
+        </view>
+        <view class="card-action">
+          <text class="card-btn">立即参与</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部安全区 -->
+  <view class="bottom-safe" style="height: {{bottomSafeHeight}}px;"></view>
+
+</scroll-view>
