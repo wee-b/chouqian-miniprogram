@@ -18,6 +18,7 @@ import com.quickstart.common.enumeration.DeletedFlagEnum;
 import com.quickstart.common.exception.BusinessException;
 
 import com.quickstart.draw.constant.DrawConstants;
+import com.quickstart.draw.constant.RedisConstant;
 import com.quickstart.draw.mapper.UserReadMapper;
 import com.quickstart.draw.module.draw.mapper.DrawMapper;
 import com.quickstart.draw.module.draw.service.DrawService;
@@ -31,7 +32,10 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -144,6 +148,7 @@ public class DrawServiceImpl implements DrawService {
         draw.setJoinDeadline(request.getJoinDeadline());
         draw.setMinPerson(request.getMinPerson() == null ? 0 : request.getMinPerson());
         draw.setPerCodeNum(request.getPerCodeNum() == null ? 5 : request.getPerCodeNum());
+        draw.setPartLimit(request.getPartLimit() == null ? 1 : request.getPartLimit());
 
         // 系统自动生成
         String drawNo = String.valueOf(snowflake.nextId());
@@ -161,6 +166,11 @@ public class DrawServiceImpl implements DrawService {
 
         drawMapper.insert(draw);
 
+        // 如果是直接发布，同步参与次数限制到 Redis
+        if (draw.getStatus() == DrawConstants.DRAW_STATUS_RUNNING) {
+            syncPartLimitToRedis(draw.getDrawId(), draw.getPartLimit(), draw.getJoinDeadline());
+        }
+
         // 清缓存
         evictOfficialDrawCache();
 
@@ -175,6 +185,7 @@ public class DrawServiceImpl implements DrawService {
         vo.setJoinDeadline(draw.getJoinDeadline());
         vo.setMinPerson(draw.getMinPerson());
         vo.setPerCodeNum(draw.getPerCodeNum());
+        vo.setPartLimit(draw.getPartLimit());
         vo.setDrawNo(draw.getDrawNo());
         vo.setCreateTime(draw.getCreateTime());
 
@@ -223,6 +234,7 @@ public class DrawServiceImpl implements DrawService {
         draw.setJoinDeadline(request.getJoinDeadline());
         draw.setMinPerson(request.getMinPerson() == null ? 0 : request.getMinPerson());
         draw.setPerCodeNum(request.getPerCodeNum() == null ? 5 : request.getPerCodeNum());
+        draw.setPartLimit(request.getPartLimit() == null ? 1 : request.getPartLimit());
         draw.setUpdateTime(LocalDateTime.now());
 
         drawMapper.updateById(draw);
@@ -273,7 +285,24 @@ public class DrawServiceImpl implements DrawService {
         draw.setUpdateTime(LocalDateTime.now());
         drawMapper.updateById(draw);
 
+        // 同步参与次数限制到 Redis
+        syncPartLimitToRedis(drawId, draw.getPartLimit(), draw.getJoinDeadline());
+
         evictOfficialDrawCache();
+    }
+
+    private void syncPartLimitToRedis(Long drawId, Integer partLimit, LocalDateTime joinDeadline) {
+        if (partLimit == null || partLimit <= 0) {
+            return;
+        }
+        String limitKey = RedisConstant.PART_LIMIT_PREFIX + ":" + drawId;
+        redisTemplate.opsForValue().set(limitKey, String.valueOf(partLimit));
+
+        long ttlSeconds = joinDeadline.atZone(ZoneId.systemDefault())
+                .toEpochSecond() - Instant.now().getEpochSecond();
+        if (ttlSeconds > 0) {
+            redisTemplate.expire(limitKey, Duration.ofSeconds(ttlSeconds));
+        }
     }
 
     @Override

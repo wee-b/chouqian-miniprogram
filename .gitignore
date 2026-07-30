@@ -11,3 +11,8 @@ front/project.private.config.json
 # OS
 .DS_Store
 Thumbs.db
+
+
+application-dev.yml
+
+docs/

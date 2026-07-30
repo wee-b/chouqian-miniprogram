@@ -20,6 +20,7 @@ public class DrawVO {
     private LocalDateTime joinDeadline; // 参与截止时间
     private Integer minPerson;       // 最少参与人数
     private Integer perCodeNum;      // 每人抽签码数量
+    private Integer partLimit;       // 每人可参与次数上限
 
     // ====================== 要求新增字段 ======================
     private String drawNo;           // 唯一抽奖编号

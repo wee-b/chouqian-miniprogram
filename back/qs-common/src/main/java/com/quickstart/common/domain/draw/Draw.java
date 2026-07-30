@@ -62,6 +62,11 @@ public class Draw {
      */
     private Integer perCodeNum;
 
+    /**
+     * 每人可以参与多少次（最多99次）
+     */
+    private Integer partLimit;
+
 
     /**
      * 唯一抽奖编号

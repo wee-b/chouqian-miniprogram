@@ -141,10 +141,11 @@ CREATE TABLE `qs_draw`
     `draw_cover` varchar(100) DEFAULT NULL COMMENT '抽签封面',
     `description` varchar(500) DEFAULT NULL COMMENT '抽签说明',
     `has_prize` tinyint(1) NOT NULL DEFAULT 0 COMMENT '有无奖品：0-无奖品(随机选人) 1-有奖品(抽奖)',
-    `drawing_way` tinyint(1) NOT NULL DEFAULT 0 COMMENT '开奖方式：0-按时间开奖 1-按人数开奖 2-',
+    `drawing_way` tinyint(1) NOT NULL DEFAULT 0 COMMENT '开奖方式：0-按时间开奖 1-按人数开奖 2-手动开奖',
     `join_deadline` datetime NOT NULL COMMENT '参与截止时间',
     `min_person` int default 0 comment '最少参与人数',
     `per_code_num` tinyint(1) default 5 comment '每人每次可获得多少抽签码',
+    `part_limit` tinyint(2) default 1 comment '每人可以参与多少次（最多99次）',
 
     -- 自动生成部分
     `draw_no` varchar(64) NOT NULL COMMENT '唯一抽奖编号',

@@ -8,6 +8,7 @@ import com.quickstart.common.domain.user.User;
 import com.quickstart.common.domain.winner.Winner;
 import com.quickstart.common.domain.winner.vo.WinnerVO;
 import com.quickstart.draw.constant.DrawConstants;
+import com.quickstart.draw.constant.RedisConstant;
 import com.quickstart.common.domain.drawCode.DrawCode;
 import com.quickstart.common.domain.drawCode.vo.DrawCodeVO;
 import com.quickstart.common.exception.BusinessException;
@@ -21,6 +22,7 @@ import com.quickstart.draw.util.DrawCodeGenerator;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +52,8 @@ public class LocalDrawCodeServiceImpl implements DrawCodeService {
     private WinnerMapper winnerMapper;
     @Autowired
     private UserReadMapper userReadMapper;
+    @Autowired
+    private StringRedisTemplate redisTemplate;
 
 
     /**
@@ -62,13 +66,8 @@ public class LocalDrawCodeServiceImpl implements DrawCodeService {
         Draw draw = drawMapper.selectById(drawId);
         ensureJoinable(draw);
 
-        // 2. 前置校验：是否已参与
-        LambdaQueryWrapper<DrawCode> existWrapper = new LambdaQueryWrapper<>();
-        existWrapper.eq(DrawCode::getDrawId, drawId);
-        existWrapper.eq(DrawCode::getUserId, userId);
-        if (drawCodeMapper.selectCount(existWrapper) > 0) {
-            throw new BusinessException(ErrorCode.BUSINESS_ERROR, "您已参与过该抽签");
-        }
+        // 2. 检查参与次数上限（Redis 原子计数）
+        checkAndIncrementPartCount(drawId, userId);
 
         // 3. 获取每人可生成的码数量
         int perCodeNum = draw.getPerCodeNum();
@@ -100,6 +99,26 @@ public class LocalDrawCodeServiceImpl implements DrawCodeService {
         drawMapper.updateById(draw);
 
         return codeValues;
+    }
+
+    /**
+     * 检查并递增参与次数（Redis 原子操作），超过上限则拒绝
+     */
+    private void checkAndIncrementPartCount(Long drawId, Long userId) {
+        String limitKey = RedisConstant.PART_LIMIT_PREFIX + ":" + drawId;
+        String limitStr = redisTemplate.opsForValue().get(limitKey);
+        if (limitStr == null) {
+            return; // 未设置上限，跳过检查
+        }
+        int limit = Integer.parseInt(limitStr);
+        String countKey = RedisConstant.PART_COUNT_PREFIX + ":" + drawId;
+        String userIdStr = String.valueOf(userId);
+
+        Long newCount = redisTemplate.opsForHash().increment(countKey, userIdStr, 1);
+        if (newCount != null && newCount > limit) {
+            redisTemplate.opsForHash().increment(countKey, userIdStr, -1);
+            throw new BusinessException(ErrorCode.BUSINESS_ERROR, "您已达到参与次数上限");
+        }
     }
 
     private void ensureJoinable(Draw draw) {

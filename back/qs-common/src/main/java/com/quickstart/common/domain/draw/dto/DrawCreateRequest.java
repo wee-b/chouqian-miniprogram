@@ -44,6 +44,9 @@ public class DrawCreateRequest {
     @Schema(description = "每人每次可获得多少抽签码")
     private Integer perCodeNum;
 
+    @Schema(description = "每人可以参与多少次（最多99次），默认1次")
+    private Integer partLimit;
+
     @Schema(description = "状态：0-保存草稿 1-保存并发布，不传默认0")
     private Integer status;
 }
