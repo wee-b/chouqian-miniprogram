@@ -19,6 +19,19 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Dubbo 接口契约（Provider 必须依赖） -->
+        <dependency>
+            <groupId>com.quickStart</groupId>
+            <artifactId>qs-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Dubbo 3.3.x（暴露 UserDubboService） -->
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo-spring-boot-starter</artifactId>
+        </dependency>
+
         <!-- Spring MVC -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

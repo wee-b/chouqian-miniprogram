@@ -1,0 +1,28 @@
+server:
+  port: 8087
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: qs-ops
+
+  profiles:
+    active: dev
+  config:
+    import: classpath:dev/base.yaml    # 复用 qs-common 的数据源/Redis/MyBatis 配置
+
+# Dubbo 配置
+dubbo:
+  application:
+    name: qs-ops
+  # 注册中心复用 Nacos（与 SpringCloud discovery 同一 Nacos 实例，Dubbo 独立注册）
+  registry:
+    address: nacos://localhost:8848
+  # Triple 协议：基于 HTTP/2，兼容 gRPC，云原生友好
+  protocol:
+    name: tri
+    port: 20880
+  # 扫描 @DubboService 注解的包
+  scan:
+    base-packages: com.quickstart.ops.dubbo

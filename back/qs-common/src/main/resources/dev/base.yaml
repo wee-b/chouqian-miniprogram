@@ -23,7 +23,7 @@ spring:
       host: ${qs.redis.host}
       port: ${qs.redis.port}
       database: ${qs.redis.database}
-#      password: ${qs.redis.password}
+      password: ${qs.redis.password}
   rabbitmq:
     host: ${qs.rabbitmq.host}
     port: ${qs.rabbitmq.port}

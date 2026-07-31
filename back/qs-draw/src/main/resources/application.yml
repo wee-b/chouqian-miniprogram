@@ -12,6 +12,14 @@ spring:
   config:
     import: classpath:dev/base.yaml    # 复用 qs-common 的 common.yaml
 
+# Dubbo 配置（Consumer：调用 qs-client/qs-ops 的 Dubbo 服务）
+dubbo:
+  application:
+    name: qs-draw
+  # 注册中心复用 Nacos，发现 UserDubboService / OpLogDubboService / RiskRuleDubboService / IdDubboService / StatDubboService
+  registry:
+    address: nacos://localhost:8848
+
 
 
 

@@ -11,9 +11,11 @@
 
     <modules>
         <module>qs-common</module>
+        <module>qs-api</module>
         <module>qs-gateway</module>
         <module>qs-client</module>
         <module>qs-draw</module>
+        <module>qs-ops</module>
     </modules>
 
     <properties>
@@ -39,6 +41,7 @@
         <fastjson.version>2.0.57</fastjson.version>
         <druid.version>1.2.25</druid.version>
         <redisson.version>3.44.0</redisson.version>
+        <dubbo.version>3.3.4</dubbo.version>
 
     </properties>
 
@@ -171,6 +174,20 @@
                 <groupId>org.redisson</groupId>
                 <artifactId>redisson-spring-boot-starter</artifactId>
                 <version>${redisson.version}</version>
+            </dependency>
+
+            <!-- Dubbo 3.3.x（适配 SpringBoot 3.5.x，注册中心复用 Nacos） -->
+            <dependency>
+                <groupId>org.apache.dubbo</groupId>
+                <artifactId>dubbo-spring-boot-starter</artifactId>
+                <version>${dubbo.version}</version>
+            </dependency>
+
+            <!-- qs-api：Dubbo 接口契约模块（Provider/Consumer 共享） -->
+            <dependency>
+                <groupId>com.quickStart</groupId>
+                <artifactId>qs-api</artifactId>
+                <version>${project.version}</version>
             </dependency>
 
         </dependencies>

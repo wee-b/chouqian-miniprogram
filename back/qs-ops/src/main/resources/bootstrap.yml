@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: qs-ops
+  cloud:
+    compatibility-verifier:
+      enabled: false
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        enabled: true

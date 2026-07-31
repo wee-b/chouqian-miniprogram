@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.quickStart</groupId>
+        <artifactId>quick-start</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>qs-api</artifactId>
+    <name>qs-api</name>
+    <description>Dubbo 接口契约 + DTO（Provider/Consumer 共享，纯接口 jar）</description>
+
+    <!--
+        纯接口契约模块：不依赖 Spring/Dubbo 运行时，只定义接口与 DTO。
+        Dubbo 注解（@DubboService/@DubboReference）在 Provider 实现侧和 Consumer 侧，
+        因此本模块不引入 dubbo 依赖，保证零侵入、可被任意服务依赖。
+    -->
+    <dependencies>
+        <!-- Lombok：DTO 简化（可选，若想纯净可去掉，手写 getter/setter） -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>

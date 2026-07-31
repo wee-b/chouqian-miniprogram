@@ -11,45 +11,35 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>qs-draw</artifactId>
-    <name>qs-draw</name>
+    <artifactId>qs-ops</artifactId>
+    <name>qs-ops</name>
+    <description>运营服务：Dubbo Provider，承载操作日志/风控规则/分布式ID/实时统计等高频内部调用</description>
 
     <dependencies>
+        <!-- 公共底座 -->
         <dependency>
             <groupId>com.quickStart</groupId>
             <artifactId>qs-common</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Dubbo 接口契约（Consumer 依赖，用于 @DubboReference 注入） -->
+        <!-- Dubbo 接口契约（Provider 必须依赖） -->
         <dependency>
             <groupId>com.quickStart</groupId>
             <artifactId>qs-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Dubbo 3.3.x（作为 Consumer 调用 qs-client/qs-ops 的 Dubbo 服务） -->
+        <!-- Dubbo 3.3.x（Triple 协议，注册中心复用 Nacos） -->
         <dependency>
             <groupId>org.apache.dubbo</groupId>
             <artifactId>dubbo-spring-boot-starter</artifactId>
         </dependency>
 
-        <!-- Spring MVC -->
+        <!-- Spring MVC（ops 也提供少量运营管理 HTTP 接口） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <!-- Spring Security -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-
-        <!-- MyBatis-Plus -->
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
         </dependency>
 
         <!-- Nacos 服务发现 -->
@@ -62,6 +52,12 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-bootstrap</artifactId>
+        </dependency>
+
+        <!-- MyBatis-Plus（操作日志落库） -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
         </dependency>
 
         <!-- MySQL -->
@@ -78,40 +74,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- RabbitMQ -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-amqp</artifactId>
-        </dependency>
-
-        <!-- Knife4j 文档 -->
-
-        <dependency>
-            <groupId>com.github.xingfudeshi</groupId>
-            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
-            <version>4.6.0</version>
-        </dependency>
-
-<!--        <dependency>-->
-<!--            <groupId>com.github.xiaoymin</groupId>-->
-<!--            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>-->
-<!--            <version>4.4.0</version>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>org.springdoc</groupId>-->
-<!--                    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
-
-<!--        <dependency>-->
-<!--            <groupId>org.springdoc</groupId>-->
-<!--            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>-->
-<!--            <version>2.7.0</version>-->
-<!--        </dependency>-->
-
-
-        <!-- Redisson -->
+        <!-- Redisson（分布式ID/统计/黑名单） -->
         <dependency>
             <groupId>org.redisson</groupId>
             <artifactId>redisson-spring-boot-starter</artifactId>
@@ -123,15 +86,21 @@
             <artifactId>hutool-all</artifactId>
         </dependency>
 
+        <!-- FastJSON：操作日志序列化 -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
