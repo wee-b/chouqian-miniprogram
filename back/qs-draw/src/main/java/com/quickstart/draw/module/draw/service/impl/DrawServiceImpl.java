@@ -3,8 +3,6 @@ package com.quickstart.draw.module.draw.service.impl;
 import cn.hutool.core.lang.Snowflake;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quickstart.common.domain.ErrorCode;
 import com.quickstart.common.domain.PageResult;
 import com.quickstart.common.domain.draw.Draw;
@@ -18,26 +16,20 @@ import com.quickstart.common.enumeration.DeletedFlagEnum;
 import com.quickstart.common.exception.BusinessException;
 
 import com.quickstart.draw.constant.DrawConstants;
-import com.quickstart.draw.constant.RedisConstant;
 import com.quickstart.draw.mapper.UserReadMapper;
 import com.quickstart.draw.module.draw.mapper.DrawMapper;
 import com.quickstart.draw.module.draw.service.DrawService;
 import com.quickstart.draw.module.drawCode.mapper.DrawCodeMapper;
+import com.quickstart.draw.cache.OfficialDrawCacheService;
+import com.quickstart.draw.cache.DrawRedisService;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class DrawServiceImpl implements DrawService {
@@ -51,80 +43,22 @@ public class DrawServiceImpl implements DrawService {
     private UserReadMapper userReadMapper;
     @Autowired
     private Snowflake snowflake;
-    @Autowired
-    private StringRedisTemplate redisTemplate;
     @Resource
-    private CacheManager cacheManager;
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    private static final String OFFICIAL_DRAW_CACHE_KEY = "cache:officialDraws";
-    private static final String CAFFEINE_NAME = "officialDraws";
+    private DrawRedisService drawRedisService;
+    @Resource
+    private OfficialDrawCacheService officialDrawCacheService;
 
 
     /**
-     * 获取官方抽奖（L1 Caffeine → L2 Redis → L3 MySQL）
+     * 获取官方抽奖（三级缓存编排委托给 OfficialDrawCacheService）
      */
     @Override
     public List<DrawSmallVO> getOfficialDraw() {
-
-        // ===== L1: Caffeine 本地缓存 =====
-        Cache caffeineCache = cacheManager.getCache(CAFFEINE_NAME);
-        if (caffeineCache != null) {
-            Cache.ValueWrapper wrapper = caffeineCache.get(OFFICIAL_DRAW_CACHE_KEY);
-            if (wrapper != null) {
-                return (List<DrawSmallVO>) wrapper.get();
-            }
-        }
-
-        // ===== L2: Redis 分布式缓存 =====
-        String redisJson = redisTemplate.opsForValue().get(OFFICIAL_DRAW_CACHE_KEY);
-        if (redisJson != null) {
-            try {
-                List<DrawSmallVO> cached = objectMapper.readValue(redisJson,
-                        new TypeReference<List<DrawSmallVO>>() {});
-                if (caffeineCache != null) {
-                    caffeineCache.put(OFFICIAL_DRAW_CACHE_KEY, cached);
-                }
-                return cached;
-            } catch (Exception e) {
-                // JSON 解析异常，跳过缓存回源 DB
-            }
-        }
-
-        // ===== L3: MySQL =====
-        LambdaQueryWrapper<Draw> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Draw::getPublisherUserId, 0);
-        queryWrapper.eq(Draw::getStatus, DrawConstants.DRAW_STATUS_RUNNING);
-        queryWrapper.eq(Draw::getDeletedFlag, 0);
-        queryWrapper.orderByDesc(Draw::getCreateTime);
-
-        List<Draw> draws = drawMapper.selectList(queryWrapper);
-        List<DrawSmallVO> officialDraws = draws.stream().map(one -> {
-            DrawSmallVO vo = new DrawSmallVO();
-            BeanUtils.copyProperties(one, vo);
-            return vo;
-        }).toList();
-
-        // 回填 L2 + L1
-        try {
-            String json = objectMapper.writeValueAsString(officialDraws);
-            redisTemplate.opsForValue().set(OFFICIAL_DRAW_CACHE_KEY, json, 5, TimeUnit.MINUTES);
-        } catch (Exception ignored) {
-        }
-        if (caffeineCache != null) {
-            caffeineCache.put(OFFICIAL_DRAW_CACHE_KEY, officialDraws);
-        }
-
-        return officialDraws;
+        return officialDrawCacheService.get();
     }
 
     private void evictOfficialDrawCache() {
-        redisTemplate.delete(OFFICIAL_DRAW_CACHE_KEY);
-        Cache caffeineCache = cacheManager.getCache(CAFFEINE_NAME);
-        if (caffeineCache != null) {
-            caffeineCache.evict(OFFICIAL_DRAW_CACHE_KEY);
-        }
+        officialDrawCacheService.evict();
     }
 
     /**
@@ -292,17 +226,7 @@ public class DrawServiceImpl implements DrawService {
     }
 
     private void syncPartLimitToRedis(Long drawId, Integer partLimit, LocalDateTime joinDeadline) {
-        if (partLimit == null || partLimit <= 0) {
-            return;
-        }
-        String limitKey = RedisConstant.PART_LIMIT_PREFIX + ":" + drawId;
-        redisTemplate.opsForValue().set(limitKey, String.valueOf(partLimit));
-
-        long ttlSeconds = joinDeadline.atZone(ZoneId.systemDefault())
-                .toEpochSecond() - Instant.now().getEpochSecond();
-        if (ttlSeconds > 0) {
-            redisTemplate.expire(limitKey, Duration.ofSeconds(ttlSeconds));
-        }
+        drawRedisService.setPartLimit(drawId, partLimit, joinDeadline);
     }
 
     @Override
@@ -379,6 +303,7 @@ public class DrawServiceImpl implements DrawService {
 
     @Override
     public DrawStatisticsVO queryStatistics(String currentMemberCode) {
+
         User user = userReadMapper.selectByMemberCode(currentMemberCode);
         if (user == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "用户不存在");

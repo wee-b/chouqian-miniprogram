@@ -6,9 +6,12 @@ import com.quickstart.common.domain.ResponseDTO;
 import com.quickstart.common.domain.drawCode.vo.DrawCodeVO;
 import com.quickstart.common.domain.winner.vo.WinnerVO;
 import com.quickstart.common.security.SecurityUserContext;
-import com.quickstart.draw.module.drawCode.service.DrawCodeService;
+import com.quickstart.draw.module.drawCode.service.DrawJoinService;
+import com.quickstart.draw.module.drawCode.service.DrawOpenService;
+import com.quickstart.draw.module.drawCode.service.DrawQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -21,16 +24,24 @@ import java.util.List;
 public class DrawCodeConreoller {
 
     @Autowired
-    private DrawCodeService drawCodeService;
+    private DrawJoinService drawJoinService;
+    @Autowired
+    private DrawOpenService drawOpenService;
+    @Autowired
+    private DrawQueryService drawQueryService;
 
 
     @RateLimit(key = "joinDraw", permits = 100)
     @PostMapping("/client/drawCode/join")
     @Operation(summary = "参与抽签")
-    public ResponseDTO<List<String>> join(@RequestParam("drawId") Long drawId) {
+    public ResponseDTO<List<String>> join(
+            @RequestParam("drawId") Long drawId,
+            HttpServletRequest request
+    ) {
         log.info("收到请求：/client/drawCode/join");
         LoginUser loginUser = SecurityUserContext.getCurrentLoginUser();
-        List<String> res = drawCodeService.joinDraw(drawId, loginUser.getUserId());
+        String ip = extractIp(request);
+        List<String> res = drawJoinService.joinDraw(drawId, loginUser.getUserId(),ip);
         return ResponseDTO.ok(res);
     }
 
@@ -39,7 +50,7 @@ public class DrawCodeConreoller {
     public ResponseDTO<List<DrawCodeVO>> myCodes(@RequestParam("drawId") Long drawId) {
         log.info("收到请求：/client/drawCode/myCodes,drawId={}", drawId);
         LoginUser loginUser = SecurityUserContext.getCurrentLoginUser();
-        List<DrawCodeVO> res = drawCodeService.getMyCodes(drawId, loginUser.getUserId());
+        List<DrawCodeVO> res = drawQueryService.getMyCodes(drawId, loginUser.getUserId());
         return ResponseDTO.ok(res);
     }
 
@@ -48,7 +59,7 @@ public class DrawCodeConreoller {
     public ResponseDTO<Void> open(@PathVariable Long drawId) {
         log.info("收到请求：/client/draw/open/{}", drawId);
         LoginUser loginUser = SecurityUserContext.getCurrentLoginUser();
-        drawCodeService.openDraw(drawId, loginUser.getUserId());
+        drawOpenService.openDraw(drawId, loginUser.getUserId());
         return ResponseDTO.ok();
     }
 
@@ -56,8 +67,24 @@ public class DrawCodeConreoller {
     @Operation(summary = "查询中奖名单")
     public ResponseDTO<List<WinnerVO>> winners(@RequestParam("drawId") Long drawId) {
         log.info("收到请求：/client/draw/winners?drawId={}", drawId);
-        List<WinnerVO> winners = drawCodeService.getWinners(drawId);
+        List<WinnerVO> winners = drawQueryService.getWinners(drawId);
         return ResponseDTO.ok(winners);
+    }
+
+    /** 从请求头提取真实客户端IP（穿透网关/代理） */
+    private String extractIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Real-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        // 多级代理取第一个
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip;
     }
 
 }

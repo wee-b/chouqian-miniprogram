@@ -1,19 +1,15 @@
 package com.quickstart.draw.constant;
 
+import com.quickstart.draw.cache.DrawRedisService;
+
+/**
+ * Redis key 常量。
+ * 注意：qs-draw 业务的 StringRedisTemplate key 前缀（官方缓存/参与限制/参与计数/口令码）
+ * 已统一收敛至 {@link DrawRedisService} 私有常量，不再在此暴露。
+ * 此处仅保留不走 StringRedisTemplate 的 key。
+ */
 public class RedisConstant {
 
-    public static final String PassCodePrefix = "client:draw:passcode";
-
-    // com.quickstart.draw.module.draw.service.impl;
-    private static final String OFFICIAL_DRAW_CACHE_KEY = "cache:officialDraws";
-    private static final String CAFFEINE_NAME = "officialDraws";
-
-    /** 每人参与次数上限：draw:partLimit:{drawId} → partLimit 值 */
-    public static final String PART_LIMIT_PREFIX = "draw:partLimit";
-
-    /** 每人已参与次数：draw:partCount:{drawId} → hash { userId: count } */
-    public static final String PART_COUNT_PREFIX = "draw:partCount";
-
-    /** 抽签码生成分布式锁 */
+    /** 抽签码生成分布式锁（Redisson RLock 使用，非 StringRedisTemplate 操作） */
     public static final String CODE_GENERATOR_LOCK = "draw:lock:codeGenerator";
 }

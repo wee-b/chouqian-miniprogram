@@ -5,16 +5,13 @@ import com.quickstart.common.domain.temporaryCode.dto.GenerateCodeDTO;
 import com.quickstart.common.domain.draw.vo.DrawSmallVO;
 import com.quickstart.common.domain.temporaryCode.vo.PassCodeVO;
 import com.quickstart.common.exception.BusinessException;
-import com.quickstart.draw.constant.RedisConstant;
 import com.quickstart.draw.module.draw.mapper.DrawMapper;
 import com.quickstart.draw.module.temporaryCode.service.TemporaryCode;
+import com.quickstart.draw.cache.DrawRedisService;
 import jakarta.annotation.Resource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class TemporaryCodeImpl implements TemporaryCode {
@@ -22,8 +19,8 @@ public class TemporaryCodeImpl implements TemporaryCode {
     @Resource
     private DrawMapper drawMapper;
 
-    @Autowired
-    private StringRedisTemplate redisTemplate;
+    @Resource
+    private DrawRedisService drawRedisService;
 
 
     @Override
@@ -38,14 +35,11 @@ public class TemporaryCodeImpl implements TemporaryCode {
             throw new IllegalArgumentException("不可发布他人抽奖的口令");
         }
 
-        String prefix = RedisConstant.PassCodePrefix;
         String passcode = "";
         boolean generateSuccess = false;
         for(int i = 0;i<3;i++){     // 尝试3次
             passcode = String.valueOf(generateSixDigitCode());
-            String query = redisTemplate.opsForValue().get(prefix+passcode);
-
-            if(query == null){
+            if(!drawRedisService.existsPassCode(passcode)){
                 generateSuccess = true;
                 break;
             }
@@ -55,21 +49,16 @@ public class TemporaryCodeImpl implements TemporaryCode {
         }
 
         Integer expireHours = dto.getExpireHours();
-        redisTemplate.opsForValue().set(prefix+passcode, String.valueOf(drawId),expireHours, TimeUnit.HOURS);
-        redisTemplate.opsForValue().set(prefix+drawId, passcode,expireHours,TimeUnit.HOURS);
+        drawRedisService.setPassCode(passcode, drawId, expireHours);
     }
 
     @Override
     public void banPassCode(Long userId, String passCode) {
-        String prefix = RedisConstant.PassCodePrefix;
-
-        // 1. 根据口令查询对应的抽奖ID（你之前存的：prefix+passCode -> drawId）
-        String passCodeKey = prefix + passCode;
-        String drawIdStr = redisTemplate.opsForValue().get(passCodeKey);
-        if (drawIdStr == null) {
+        // 1. 根据口令查询对应的抽奖ID
+        Long drawId = drawRedisService.getDrawIdByPassCode(passCode);
+        if (drawId == null) {
             throw new BusinessException("口令不存在或已失效");
         }
-        Long drawId = Long.parseLong(drawIdStr);
 
         // 2. 校验抽奖是否存在 & 只能禁用自己发布的抽奖
         Draw draw = drawMapper.selectById(drawId);
@@ -81,9 +70,7 @@ public class TemporaryCodeImpl implements TemporaryCode {
         }
 
         // 3. 核心：删除Redis中的两个key，立即失效口令
-        String drawIdKey = prefix + drawId;
-        redisTemplate.delete(passCodeKey);  // 删除 口令->抽奖ID
-        redisTemplate.delete(drawIdKey);    // 删除 抽奖ID->口令
+        drawRedisService.banPassCode(passCode, drawId);
     }
 
     @Override
@@ -98,17 +85,13 @@ public class TemporaryCodeImpl implements TemporaryCode {
         }
 
         // 从redis中读取
-        String prefix = RedisConstant.PassCodePrefix;
-        String redisKey = prefix + drawId;
-        String passcode = redisTemplate.opsForValue().get(redisKey);
-
+        String passcode = drawRedisService.getPassCodeByDrawId(drawId);
         if(passcode == null){
             throw new BusinessException("口令不存在");
         }
 
         // ========== 核心：计算剩余时间和过期时间戳 ==========
-        // 获取剩余过期时间（秒）
-        Long remainValidSecond = redisTemplate.getExpire(redisKey);
+        long remainValidSecond = drawRedisService.getPassCodeTTLSeconds(drawId);
 
         // 计算过期时间戳（当前时间 + 剩余秒数 = 毫秒级时间戳）
         long expireTime = System.currentTimeMillis() + remainValidSecond * 1000;
@@ -124,12 +107,10 @@ public class TemporaryCodeImpl implements TemporaryCode {
     @Override
     public DrawSmallVO queryDrawByPC(Long userId, String passCode) {
 
-        String prefix = RedisConstant.PassCodePrefix;
-        String drawString = redisTemplate.opsForValue().get(prefix + passCode);
-        if(drawString == null){
+        Long drawId = drawRedisService.getDrawIdByPassCode(passCode);
+        if(drawId == null){
             throw new BusinessException("口令已失效");
         }
-        Long drawId = Long.valueOf(drawString);
 
         Draw draw = drawMapper.selectById(drawId);
         if(draw == null){
