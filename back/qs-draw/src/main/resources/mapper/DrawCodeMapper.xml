@@ -37,4 +37,18 @@
         </foreach>
     </select>
 
+    <select id="selectJoinRecordPage" resultType="com.quickstart.common.domain.drawCode.vo.DrawJoinRecordVO">
+        SELECT
+            dc.draw_code_id AS drawCodeId,
+            dc.user_id AS userId,
+            u.user_name AS userName,
+            u.avatar AS avatar,
+            dc.create_time AS joinTime,
+            dc.code_value AS codeValue
+        FROM qs_draw_code dc
+        LEFT JOIN qs_user u ON u.user_id = dc.user_id
+        WHERE dc.draw_id = #{drawId}
+        ORDER BY dc.create_time DESC, dc.draw_code_id DESC
+    </select>
+
 </mapper>

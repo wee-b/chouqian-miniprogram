@@ -15,10 +15,17 @@ Page({
     prizes: [],
     winners: [],
     myCodes: [],
+    joinRecords: [],
+    verifyInfo: null,
     passCodeInfo: null,
     joined: false,
     isOwner: false,
     loading: true,
+    recordsPage: 1,
+    recordsHasMore: true,
+    recordsLoading: false,
+    recordsFinishedText: '',
+    activePreviewTab: 'records',
 
     // 预处理字段
     statusText: '',
@@ -61,6 +68,12 @@ Page({
     this.loadAllData();
   },
 
+  onReachBottom() {
+    if (!this.data.loading && !this.data.isEditing && this.data.activePreviewTab === 'records') {
+      this.loadJoinRecords(false);
+    }
+  },
+
   async loadAllData() {
     this.setData({ loading: true });
     try {
@@ -69,9 +82,12 @@ Page({
       if (info && info.status === 2) {
         this.loadWinners();
       }
+      this.loadVerifyInfo();
       if (auth.isLogin() && info) {
         this.loadMyCodes();
       }
+      this.resetJoinRecords();
+      await this.loadJoinRecords(true);
     } catch (e) {
       console.error('加载数据失败', e);
     }
@@ -173,6 +189,96 @@ Page({
     } catch (e) {
       console.error('获取中奖名单失败', e);
     }
+  },
+
+  async loadVerifyInfo() {
+    try {
+      const res = await drawApi.getVerifyInfo(this.data.drawId);
+      if (res.code === 0 && res.data) {
+        this.setData({ verifyInfo: res.data });
+      }
+    } catch (e) {
+      console.error('获取验证信息失败', e);
+    }
+  },
+
+  switchPreviewTab(e) {
+    var tab = e.currentTarget.dataset.tab;
+    if (!tab || tab === this.data.activePreviewTab) return;
+    this.setData({ activePreviewTab: tab });
+  },
+
+  showVerifyRule() {
+    wx.showModal({
+      title: '可验证开奖规则',
+      content: '开奖前公开种子哈希，用来证明平台没有在开奖后临时更换随机种子；开奖后公开种子和码池哈希。码池哈希由全部参与码按字符串字典序升序排序、用英文逗号拼接后计算得到，用户可在验证页用公开算法复算中奖结果。',
+      showCancel: false,
+      confirmText: '知道了'
+    });
+  },
+
+  goVerifyPage() {
+    wx.navigateTo({
+      url: '/pages/drawVerify/drawVerify?drawId=' + this.data.drawId
+    });
+  },
+
+  resetJoinRecords() {
+    this.setData({
+      joinRecords: [],
+      recordsPage: 1,
+      recordsHasMore: true,
+      recordsLoading: false,
+      recordsFinishedText: ''
+    });
+  },
+
+  async loadJoinRecords(reset) {
+    if (this.data.recordsLoading) return;
+    if (!reset && !this.data.recordsHasMore) return;
+
+    var page = reset ? 1 : this.data.recordsPage;
+    this.setData({ recordsLoading: true });
+    try {
+      const res = await drawApi.getJoinRecords(parseInt(this.data.drawId), page);
+      if (res.code === 0 && res.data) {
+        var incoming = (res.data.data || []).map(item => {
+          item.displayName = this.maskUserName(item.userName);
+          item.joinTimeText = this.formatDateTime(item.joinTime);
+          return item;
+        });
+        var merged = reset ? incoming : this.data.joinRecords.concat(incoming);
+        var total = res.data.total != null ? res.data.total : res.data.Total;
+        var hasMore = total != null ? merged.length < total : incoming.length >= 20;
+
+        this.setData({
+          joinRecords: merged,
+          recordsPage: page + 1,
+          recordsHasMore: hasMore,
+          recordsFinishedText: hasMore ? '' : (merged.length ? '没有更多参与记录了' : '暂无参与记录')
+        });
+      }
+    } catch (e) {
+      console.error('获取参与记录失败', e);
+    }
+    this.setData({ recordsLoading: false });
+  },
+
+  maskUserName(name) {
+    var text = name || '匿名用户';
+    if (text.length <= 1) return text + '*';
+    return text.substring(0, 1) + '**';
+  },
+
+  formatDateTime(value) {
+    if (!value) return '--';
+    if (Array.isArray(value)) {
+      var a = value;
+      return a[0] + '-' + this.pad(a[1]) + '-' + this.pad(a[2]) + ' ' +
+        this.pad(a[3]) + ':' + this.pad(a[4]) + ':' + this.pad(a[5] || 0);
+    }
+    var s = String(value).replace('T', ' ');
+    return s.length >= 19 ? s.substring(0, 19) : s;
   },
 
   // ====================== 编辑模式 ======================
@@ -461,6 +567,8 @@ Page({
       if (res.code === 0) {
         wx.showToast({ title: '参与成功', icon: 'success' });
         this.loadMyCodes();
+        this.resetJoinRecords();
+        this.loadJoinRecords(true);
       } else {
         wx.showToast({ title: res.msg || '参与失败', icon: 'none' });
       }

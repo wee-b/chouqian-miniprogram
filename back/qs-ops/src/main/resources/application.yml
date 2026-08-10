@@ -18,7 +18,7 @@ dubbo:
     name: qs-ops
   # 注册中心复用 Nacos（与 SpringCloud discovery 同一 Nacos 实例，Dubbo 独立注册）
   registry:
-    address: nacos://localhost:8848
+    address: nacos://localhost:8848?group=DUBBO_GROUP
   # Triple 协议：基于 HTTP/2，兼容 gRPC，云原生友好
   protocol:
     name: tri

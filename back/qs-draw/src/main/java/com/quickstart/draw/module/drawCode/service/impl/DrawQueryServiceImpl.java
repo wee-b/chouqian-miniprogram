@@ -1,10 +1,14 @@
 package com.quickstart.draw.module.drawCode.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.quickstart.common.domain.ErrorCode;
+import com.quickstart.common.domain.PageResult;
 import com.quickstart.common.domain.draw.Draw;
 import com.quickstart.common.domain.drawCode.DrawCode;
+import com.quickstart.common.domain.drawCode.dto.DrawJoinRecordPageDTO;
 import com.quickstart.common.domain.drawCode.vo.DrawCodeVO;
+import com.quickstart.common.domain.drawCode.vo.DrawJoinRecordVO;
 import com.quickstart.common.domain.winner.vo.WinnerVO;
 import com.quickstart.common.exception.BusinessException;
 import com.quickstart.draw.module.draw.mapper.DrawMapper;
@@ -73,5 +77,22 @@ public class DrawQueryServiceImpl implements DrawQueryService {
     @Override
     public List<WinnerVO> getWinners(Long drawId) {
         return winnerMapper.selectWinnersByDrawId(drawId);
+    }
+
+    @Override
+    public PageResult<DrawJoinRecordVO> queryJoinRecords(DrawJoinRecordPageDTO dto) {
+        Draw draw = drawMapper.selectById(dto.getDrawId());
+        if (draw == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "抽签不存在");
+        }
+
+        Page<DrawJoinRecordVO> page = new Page<>(dto.getPage(), dto.getPageSize());
+        Page<DrawJoinRecordVO> result = drawCodeMapper.selectJoinRecordPage(page, dto.getDrawId());
+
+        PageResult<DrawJoinRecordVO> pageResult = new PageResult<>();
+        pageResult.setCurPage(dto.getPage());
+        pageResult.setTotal(result.getTotal());
+        pageResult.setData(result.getRecords());
+        return pageResult;
     }
 }

@@ -30,6 +30,15 @@ public class PrizeController {
         return ResponseDTO.ok(res);
     }
 
+    @NoNeedLogin
+    @Operation(summary = "查询某个抽签的所有奖品")
+    @GetMapping("/client/prize/listByDrawId")
+    public ResponseDTO<List<Prize>> listByDrawId(@RequestParam("drawId") Long drawId) {
+        log.info("收到请求：/client/prize/listByDrawId,drawId={}", drawId);
+        List<Prize> res = prizeService.getPrizesByDrawId(drawId);
+        return ResponseDTO.ok(res);
+    }
+
 
     @Operation(summary = "批量添加奖品")
     @PostMapping("/client/prize/batchAddPrize")

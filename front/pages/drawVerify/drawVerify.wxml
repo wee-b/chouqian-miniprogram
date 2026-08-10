@@ -1,0 +1,54 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <block wx:elif="{{verifyInfo}}">
+    <view class="hero">
+      <text class="hero-title">开奖验证</text>
+      <text class="hero-sub">公开种子、码池哈希与排序结果，用于复核开奖是否一致</text>
+    </view>
+
+    <view class="card">
+      <view class="card-title">公开参数</view>
+      <view class="kv" bindtap="copyValue" data-value="{{verifyInfo.seedHash}}">
+        <text class="k">种子 Hash</text>
+        <text class="v">{{verifyInfo.seedHash || '--'}}</text>
+      </view>
+      <view class="kv" bindtap="copyValue" data-value="{{verifyInfo.seed}}">
+        <text class="k">开奖种子</text>
+        <text class="v">{{verifyInfo.seed || '开奖后展示'}}</text>
+      </view>
+      <view class="kv" bindtap="copyValue" data-value="{{verifyInfo.codesHash}}">
+        <text class="k">码池 Hash</text>
+        <text class="v">{{verifyInfo.codesHash || '开奖后展示'}}</text>
+      </view>
+      <view class="kv">
+        <text class="k">算法</text>
+        <text class="v">{{verifyInfo.algorithm || '--'}}</text>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">验证说明</view>
+      <text class="rule">1. 验证 SHA256(开奖种子) 是否等于种子 Hash。</text>
+      <text class="rule">2. 将全部参与码按字符串字典序升序排序，用英文逗号拼接后计算 Hash，验证是否等于码池 Hash。</text>
+      <text class="rule">3. 用公开算法计算每个参与码 score，按 score 字典序升序排列。</text>
+      <text class="rule">4. 按奖品数量取排序靠前的参与码，对比中奖码。</text>
+    </view>
+
+    <view class="card">
+      <view class="card-title">中奖码</view>
+      <text class="winner-text">{{winnerText}}</text>
+    </view>
+
+    <view class="card" wx:if="{{verifyInfo.codes && verifyInfo.codes.length}}">
+      <view class="card-title">排序结果</view>
+      <view class="code-row {{item.winner ? 'win' : ''}}" wx:for="{{verifyInfo.codes}}" wx:key="drawCodeId">
+        <view class="code-main">
+          <text class="code-value">{{index + 1}}. {{item.codeValue}}</text>
+          <text class="score">{{item.score}}</text>
+        </view>
+        <text class="win-tag" wx:if="{{item.winner}}">中奖</text>
+      </view>
+    </view>
+  </block>
+</view>

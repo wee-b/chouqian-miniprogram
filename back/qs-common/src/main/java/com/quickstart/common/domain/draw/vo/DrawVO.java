@@ -31,4 +31,5 @@ public class DrawVO {
     private Integer participantCount; // 参与人数
     private LocalDateTime drawTime;  // 开奖时间
     private Boolean isOwner;         // 当前用户是否为发布者
+    private String seedHash;         // 开奖随机种子哈希，开奖前公开
 }

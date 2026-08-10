@@ -36,11 +36,11 @@ public class AdminUserController {
     @GetMapping("/admin/page")
     @Operation(summary = "分页查询用户")
     @PreAuthorize("hasAuthority('system:user:list')")
-    public ResponseDTO<IPage<UserInfoVO>> page(@RequestParam(defaultValue = "1") @Min(1) long pageNo,
-                                               @RequestParam(defaultValue = "10") @Min(1) long pageSize,
-                                               @RequestParam(required = false) String userName,
-                                               @RequestParam(required = false) String phone,
-                                               @RequestParam(required = false) Integer status) {
+    public ResponseDTO<IPage<UserInfoVO>> page(@RequestParam(value = "pageNo", defaultValue = "1") @Min(1) long pageNo,
+                                               @RequestParam(value = "pageSize", defaultValue = "10") @Min(1) long pageSize,
+                                               @RequestParam(value = "userName", required = false) String userName,
+                                               @RequestParam(value = "phone", required = false) String phone,
+                                               @RequestParam(value = "status", required = false) Integer status) {
         IPage<UserInfoVO> responsePage = userService.pageAdminUsers(pageNo, pageSize, userName, phone, status)
                 .convert(UserInfoVO::fromEntity);
         return ResponseDTO.ok(responsePage);
@@ -49,7 +49,7 @@ public class AdminUserController {
     @GetMapping("/admin/{memberCode}")
     @Operation(summary = "查询用户详情")
     @PreAuthorize("hasAuthority('system:user:query')")
-    public ResponseDTO<UserInfoVO> detail(@PathVariable String memberCode) {
+    public ResponseDTO<UserInfoVO> detail(@PathVariable("memberCode") String memberCode) {
         User user = userService.findByMemberCode(memberCode);
         if (user == null) {
             return ResponseDTO.userErrorParam("用户不存在");
@@ -84,7 +84,8 @@ public class AdminUserController {
     @PutMapping("/admin/{memberCode}/status")
     @Operation(summary = "更新用户状态")
     @PreAuthorize("hasAuthority('system:user:edit')")
-    public ResponseDTO<Void> updateStatus(@PathVariable String memberCode, @RequestParam @NotNull Integer status) {
+    public ResponseDTO<Void> updateStatus(@PathVariable("memberCode") String memberCode,
+                                          @RequestParam("status") @NotNull Integer status) {
         boolean success = userService.updateStatusByMemberCode(memberCode, status);
         if (!success) {
             return ResponseDTO.userErrorParam("用户不存在");

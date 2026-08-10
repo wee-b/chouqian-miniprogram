@@ -37,10 +37,10 @@ public class RoleController {
     @GetMapping("/page")
     @Operation(summary = "分页查询角色")
     @PreAuthorize("hasAuthority('system:role:list')")
-    public ResponseDTO<IPage<RoleView>> page(@RequestParam(defaultValue = "1") @Min(1) long pageNo,
-                                             @RequestParam(defaultValue = "10") @Min(1) long pageSize,
-                                             @RequestParam(required = false) String roleName,
-                                             @RequestParam(required = false) Integer status) {
+    public ResponseDTO<IPage<RoleView>> page(@RequestParam(value = "pageNo", defaultValue = "1") @Min(1) long pageNo,
+                                             @RequestParam(value = "pageSize", defaultValue = "10") @Min(1) long pageSize,
+                                             @RequestParam(value = "roleName", required = false) String roleName,
+                                             @RequestParam(value = "status", required = false) Integer status) {
         IPage<RoleView> page = roleService.pageRoles(pageNo, pageSize, roleName, status)
                 .convert(role -> RoleView.fromEntity(role, null));
         return ResponseDTO.ok(page);
@@ -49,7 +49,7 @@ public class RoleController {
     @GetMapping("/{roleId}")
     @Operation(summary = "查询角色详情")
     @PreAuthorize("hasAuthority('system:role:query')")
-    public ResponseDTO<RoleView> detail(@PathVariable Long roleId) {
+    public ResponseDTO<RoleView> detail(@PathVariable("roleId") Long roleId) {
         RoleView roleView = roleService.findViewById(roleId);
         if (roleView == null) {
             return ResponseDTO.userErrorParam("角色不存在");
@@ -68,7 +68,7 @@ public class RoleController {
     @PutMapping("/{roleId}")
     @Operation(summary = "修改角色")
     @PreAuthorize("hasAuthority('system:role:edit')")
-    public ResponseDTO<RoleView> update(@PathVariable Long roleId, @RequestBody @Valid RoleSaveRequest request) {
+    public ResponseDTO<RoleView> update(@PathVariable("roleId") Long roleId, @RequestBody @Valid RoleSaveRequest request) {
         roleService.update(roleId, request);
         return ResponseDTO.ok(roleService.findViewById(roleId));
     }
@@ -76,7 +76,8 @@ public class RoleController {
     @PutMapping("/{roleId}/status")
     @Operation(summary = "修改角色状态")
     @PreAuthorize("hasAuthority('system:role:edit')")
-    public ResponseDTO<Void> updateStatus(@PathVariable Long roleId, @RequestParam @NotNull Integer status) {
+    public ResponseDTO<Void> updateStatus(@PathVariable("roleId") Long roleId,
+                                          @RequestParam("status") @NotNull Integer status) {
         boolean success = roleService.updateStatus(roleId, status);
         if (!success) {
             return ResponseDTO.userErrorParam("角色不存在");

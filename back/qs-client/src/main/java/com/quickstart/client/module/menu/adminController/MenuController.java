@@ -45,7 +45,7 @@ public class MenuController {
     @GetMapping("/{menuId}")
     @Operation(summary = "查询菜单详情")
     @PreAuthorize("hasAuthority('system:menu:query')")
-    public ResponseDTO<MenuView> detail(@PathVariable Long menuId) {
+    public ResponseDTO<MenuView> detail(@PathVariable("menuId") Long menuId) {
         Menu menu = menuService.findById(menuId);
         if (menu == null) {
             return ResponseDTO.userErrorParam("菜单不存在");
@@ -63,14 +63,15 @@ public class MenuController {
     @PutMapping("/{menuId}")
     @Operation(summary = "修改菜单")
     @PreAuthorize("hasAuthority('system:menu:edit')")
-    public ResponseDTO<MenuView> update(@PathVariable Long menuId, @RequestBody @Valid MenuSaveRequest request) {
+    public ResponseDTO<MenuView> update(@PathVariable("menuId") Long menuId, @RequestBody @Valid MenuSaveRequest request) {
         return ResponseDTO.ok(MenuView.fromEntity(menuService.update(menuId, request)));
     }
 
     @PutMapping("/{menuId}/status")
     @Operation(summary = "修改菜单状态")
     @PreAuthorize("hasAuthority('system:menu:edit')")
-    public ResponseDTO<Void> updateStatus(@PathVariable Long menuId, @RequestParam @NotNull Integer status) {
+    public ResponseDTO<Void> updateStatus(@PathVariable("menuId") Long menuId,
+                                          @RequestParam("status") @NotNull Integer status) {
         boolean success = menuService.updateStatus(menuId, status);
         if (!success) {
             return ResponseDTO.userErrorParam("菜单不存在");

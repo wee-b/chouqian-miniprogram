@@ -1,5 +1,8 @@
 package com.quickstart.draw.module.drawCode.service;
 
+import com.quickstart.common.domain.PageResult;
+import com.quickstart.common.domain.drawCode.dto.DrawJoinRecordPageDTO;
+import com.quickstart.common.domain.drawCode.vo.DrawJoinRecordVO;
 import com.quickstart.common.domain.drawCode.vo.DrawCodeVO;
 import com.quickstart.common.domain.winner.vo.WinnerVO;
 
@@ -19,4 +22,9 @@ public interface DrawQueryService {
      * 查询中奖名单
      */
     List<WinnerVO> getWinners(Long drawId);
+
+    /**
+     * 分页查询抽签参与记录
+     */
+    PageResult<DrawJoinRecordVO> queryJoinRecords(DrawJoinRecordPageDTO dto);
 }

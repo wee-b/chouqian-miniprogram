@@ -14,6 +14,7 @@ import com.quickstart.draw.module.draw.mapper.DrawMapper;
 import com.quickstart.draw.module.drawCode.mapper.DrawCodeMapper;
 import com.quickstart.draw.module.drawCode.mapper.WinnerMapper;
 import com.quickstart.draw.module.drawCode.service.DrawOpenService;
+import com.quickstart.draw.module.drawVerify.service.DrawVerifyService;
 import com.quickstart.draw.module.prize.mapper.PrizeMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -40,6 +40,8 @@ public class DrawOpenExecutor implements DrawOpenService {
     private WinnerMapper winnerMapper;
     @Autowired
     private UserReadMapper userReadMapper;
+    @Autowired
+    private DrawVerifyService drawVerifyService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -66,20 +68,24 @@ public class DrawOpenExecutor implements DrawOpenService {
             throw new BusinessException(ErrorCode.BUSINESS_ERROR, "没有可开奖的抽签码，参与者不足");
         }
 
-        // 3. 查询奖品（按奖品等级升序）
+        // 3. 确保开奖承诺存在，并锁定当前参与码集合
+        drawVerifyService.ensureCommitment(draw);
+        String codesHash = drawVerifyService.buildCodesHash(codes);
+
+        // 4. 查询奖品（按奖品等级升序）
         LambdaQueryWrapper<Prize> prizeWrapper = new LambdaQueryWrapper<>();
         prizeWrapper.eq(Prize::getDrawId, drawId);
         prizeWrapper.orderByAsc(Prize::getPrizeType);
         List<Prize> prizes = prizeMapper.selectList(prizeWrapper);
 
-        // 4. 随机开奖
-        Collections.shuffle(codes);
+        // 5. 可验证随机开奖：按 SHA-256 分数升序排列
+        List<DrawCode> sortedCodes = drawVerifyService.sortCodes(drawId, draw.getServerSeed(), codes);
         List<Winner> winners = new ArrayList<>();
         int codeIndex = 0;
 
         if (prizes.isEmpty()) {
             // 没有奖品：随机选1个人
-            DrawCode selected = codes.get(0);
+            DrawCode selected = sortedCodes.get(0);
             selected.setPrizeId(0L);
             drawCodeMapper.updateById(selected);
             winners.add(buildWinner(selected, drawId, 0L));
@@ -87,8 +93,8 @@ public class DrawOpenExecutor implements DrawOpenService {
             // 有奖品：按奖品等级和数量依次分配
             for (Prize prize : prizes) {
                 int amount = prize.getAmount();
-                for (int i = 0; i < amount && codeIndex < codes.size(); i++) {
-                    DrawCode selected = codes.get(codeIndex);
+                for (int i = 0; i < amount && codeIndex < sortedCodes.size(); i++) {
+                    DrawCode selected = sortedCodes.get(codeIndex);
                     selected.setPrizeId(prize.getPrizeId());
                     drawCodeMapper.updateById(selected);
                     winners.add(buildWinner(selected, drawId, prize.getPrizeId()));
@@ -101,12 +107,13 @@ public class DrawOpenExecutor implements DrawOpenService {
             throw new BusinessException(ErrorCode.BUSINESS_ERROR, "参与人数不足或奖品配置异常，开奖失败");
         }
 
-        // 5. 批量写入中奖记录
+        // 6. 批量写入中奖记录
         winnerMapper.batchInsert(winners);
 
-        // 6. 更新抽签状态为已开奖
+        // 7. 更新抽签状态为已开奖，并保存验证快照
         draw.setStatus(DrawConstants.DRAW_STATUS_OPENED);
         draw.setDrawTime(LocalDateTime.now());
+        draw.setCodesHash(codesHash);
         draw.setUpdateTime(LocalDateTime.now());
         drawMapper.updateById(draw);
     }

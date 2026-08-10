@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 抽签服务 Redis 操作统一出口。
@@ -35,18 +36,21 @@ public class DrawRedisService {
     private final ObjectMapper objectMapper;
 
     // ==================== key 前缀集中管理（不再散落到业务类）====================
-    /** 官方抽签列表缓存（String 存 JSON） */
+    /** 1.官方抽签列表缓存（String 存 JSON） */
     private static final String OFFICIAL_DRAW_KEY = "cache:officialDraws";
-    /** 参与次数上限：draw:partLimit:{drawId} → 数值 */
+
+    /** 2.参与次数上限：draw:partLimit:{drawId} → 数值 */
     private static final String PART_LIMIT_PREFIX = "draw:partLimit:";
-    /** 每人参与计数：draw:partCount:{drawId} → Hash{ userId: count } */
+
+    /** 3.每人参与计数：draw:partCount:{drawId} → Hash{ userId: count } */
     private static final String PART_COUNT_PREFIX = "draw:partCount:";
-    /** 口令码双向映射：client:draw:passcode:{passcode} → drawId；client:draw:passcode:draw:{drawId} → passcode */
+
+    /** 4.口令码双向映射：client:draw:passcode:{passcode} → drawId；client:draw:passcode:draw:{drawId} → passcode */
     private static final String PASSCODE_PREFIX = "client:draw:passcode:";
     private static final String PASSCODE_DRAW_SUFFIX = "draw:";
 
     /** 官方抽签缓存 TTL */
-    private static final Duration OFFICIAL_DRAW_TTL = Duration.ofMinutes(5);
+    private static final long OFFICIAL_DRAW_TTL_SECONDS = TimeUnit.MINUTES.toSeconds(5);
 
     public DrawRedisService(StringRedisTemplate redisTemplate, ObjectMapper objectMapper) {
         this.redisTemplate = redisTemplate;
@@ -77,7 +81,7 @@ public class DrawRedisService {
     public void setOfficialDrawCache(List<DrawSmallVO> list) {
         try {
             String json = objectMapper.writeValueAsString(list);
-            redisTemplate.opsForValue().set(OFFICIAL_DRAW_KEY, json, OFFICIAL_DRAW_TTL);
+            redisTemplate.opsForValue().set(OFFICIAL_DRAW_KEY, json, OFFICIAL_DRAW_TTL_SECONDS, TimeUnit.SECONDS);
         } catch (Exception e) {
             log.warn("官方抽签缓存写入失败", e);
         }
@@ -108,13 +112,14 @@ public class DrawRedisService {
             return;
         }
         String key = PART_LIMIT_PREFIX + drawId;
-        redisTemplate.opsForValue().set(key, String.valueOf(partLimit));
         if (joinDeadline != null) {
             long ttlSeconds = Duration.between(LocalDateTime.now(), joinDeadline).getSeconds();
             if (ttlSeconds > 0) {
-                redisTemplate.expire(key, Duration.ofSeconds(ttlSeconds));
+                redisTemplate.opsForValue().set(key, String.valueOf(partLimit), ttlSeconds, TimeUnit.SECONDS);
+                return;
             }
         }
+        redisTemplate.opsForValue().set(key, String.valueOf(partLimit));
     }
 
     // ==================== 3. 每人参与计数（Hash 原子）====================
@@ -173,9 +178,9 @@ public class DrawRedisService {
      * 建立口令码 ↔ 抽签ID 双向映射，TTL = expireHours 小时。
      */
     public void setPassCode(String passCode, Long drawId, int expireHours) {
-        Duration ttl = Duration.ofHours(expireHours);
-        redisTemplate.opsForValue().set(PASSCODE_PREFIX + passCode, String.valueOf(drawId), ttl);
-        redisTemplate.opsForValue().set(PASSCODE_PREFIX + PASSCODE_DRAW_SUFFIX + drawId, passCode, ttl);
+        long ttlSeconds = TimeUnit.HOURS.toSeconds(expireHours);
+        redisTemplate.opsForValue().set(PASSCODE_PREFIX + passCode, String.valueOf(drawId), ttlSeconds, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(PASSCODE_PREFIX + PASSCODE_DRAW_SUFFIX + drawId, passCode, ttlSeconds, TimeUnit.SECONDS);
     }
 
     /**

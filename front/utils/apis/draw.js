@@ -148,6 +148,15 @@ export default {
     });
   },
 
+  // 分页查询抽签参与记录
+  getJoinRecords(drawId, page) {
+    return request({
+      url: '/client/drawCode/joinRecords',
+      method: 'POST',
+      data: { drawId, page, pageSize: 20 }
+    });
+  },
+
   // 手动开奖 (PathVariable)
   openDraw(drawId) {
     return request({
@@ -166,12 +175,21 @@ export default {
     });
   },
 
+  // 查询可验证开奖信息
+  getVerifyInfo(drawId) {
+    return request({
+      url: '/client/draw/verify',
+      method: 'GET',
+      data: { drawId }
+    });
+  },
+
   // ====================== 奖品 ======================
 
   // 根据抽奖ID获取奖品列表
   getPrizesByDrawId(drawId) {
     return request({
-      url: '/client/prize/getPrizesByDrawId',
+      url: '/client/prize/listByDrawId',
       method: 'GET',
       data: { drawId }
     });

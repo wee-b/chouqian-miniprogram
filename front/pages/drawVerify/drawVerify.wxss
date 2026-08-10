@@ -1,0 +1,147 @@
+page {
+  background: #f3f6fb;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 28rpx 24rpx 48rpx;
+  box-sizing: border-box;
+}
+
+.loading {
+  padding: 220rpx 0;
+  text-align: center;
+  color: #96a0af;
+  font-size: 28rpx;
+}
+
+.hero {
+  padding: 24rpx 8rpx 28rpx;
+}
+
+.hero-title {
+  display: block;
+  color: #1f2937;
+  font-size: 44rpx;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.hero-sub {
+  display: block;
+  margin-top: 12rpx;
+  color: #7b8798;
+  font-size: 25rpx;
+  line-height: 36rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 26rpx 28rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 18rpx rgba(30, 41, 59, 0.05);
+}
+
+.card-title {
+  color: #1f2937;
+  font-size: 31rpx;
+  font-weight: 800;
+  margin-bottom: 18rpx;
+}
+
+.kv {
+  padding: 18rpx 0;
+  border-top: 1rpx solid #f0f2f6;
+}
+
+.kv:first-of-type {
+  border-top: none;
+}
+
+.k {
+  display: block;
+  color: #8a95a6;
+  font-size: 24rpx;
+  margin-bottom: 8rpx;
+}
+
+.v {
+  display: block;
+  color: #303744;
+  font-size: 24rpx;
+  line-height: 34rpx;
+  font-family: monospace;
+  word-break: break-all;
+}
+
+.rule {
+  display: block;
+  color: #546174;
+  font-size: 25rpx;
+  line-height: 40rpx;
+  margin-bottom: 8rpx;
+}
+
+.winner-text {
+  display: block;
+  color: #d94b2b;
+  font-size: 30rpx;
+  line-height: 42rpx;
+  font-weight: 800;
+  word-break: break-all;
+}
+
+.code-row {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-top: 1rpx solid #f0f2f6;
+}
+
+.code-row:first-of-type {
+  border-top: none;
+}
+
+.code-row.win {
+  background: #fff8ec;
+  margin: 0 -12rpx;
+  padding-left: 12rpx;
+  padding-right: 12rpx;
+  border-radius: 14rpx;
+}
+
+.code-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.code-value {
+  display: block;
+  color: #1f2937;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.score {
+  display: block;
+  margin-top: 6rpx;
+  color: #9aa5b5;
+  font-size: 21rpx;
+  line-height: 30rpx;
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.win-tag {
+  flex-shrink: 0;
+  color: #fff;
+  background: #f59e0b;
+  font-size: 22rpx;
+  font-weight: 700;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  margin-left: 16rpx;
+}

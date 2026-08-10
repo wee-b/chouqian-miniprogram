@@ -18,7 +18,7 @@ dubbo:
     name: qs-draw
   # 注册中心复用 Nacos，发现 UserDubboService / OpLogDubboService / RiskRuleDubboService / IdDubboService / StatDubboService
   registry:
-    address: nacos://localhost:8848
+    address: nacos://localhost:8848?group=DUBBO_GROUP
 
 
 

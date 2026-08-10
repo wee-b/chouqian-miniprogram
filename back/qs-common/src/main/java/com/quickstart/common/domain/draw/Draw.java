@@ -75,6 +75,25 @@ public class Draw {
     private LocalDateTime drawTime;  // 开奖时间
     private Integer participantCount;
     private Integer codeCount;
+    /**
+     * 开奖随机种子，开奖后公开
+     */
+    private String serverSeed;
+
+    /**
+     * 开奖随机种子哈希，开奖前公开
+     */
+    private String seedHash;
+
+    /**
+     * 开奖时参与码集合哈希
+     */
+    private String codesHash;
+
+    /**
+     * 可验证开奖算法说明
+     */
+    private String verifyAlgorithm;
 
     /** 状态：0-草稿 1-参与中 2-已开奖 3-流局 */
     private Integer status;

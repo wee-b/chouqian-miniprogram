@@ -127,6 +127,29 @@
     </view>
   </block>
 
+  <!-- ========== 可验证开奖 ========== -->
+  <view class="verify-section" wx:if="{{!isEditing}}">
+    <view class="section-head verify-head">
+      <text class="section-title">可验证开奖</text>
+      <view class="verify-help" bindtap="showVerifyRule">?</view>
+    </view>
+    <view class="verify-row">
+      <text class="verify-label">种子 Hash</text>
+      <text class="verify-value">{{(verifyInfo && verifyInfo.seedHash) || drawInfo.seedHash || '生成中'}}</text>
+    </view>
+    <view class="verify-row">
+      <text class="verify-label">开奖种子</text>
+      <text class="verify-value {{drawInfo.status !== 2 ? 'placeholder' : ''}}">{{drawInfo.status === 2 && verifyInfo && verifyInfo.seed ? verifyInfo.seed : '开奖后展示'}}</text>
+    </view>
+    <view class="verify-row">
+      <text class="verify-label">码池 Hash</text>
+      <text class="verify-value {{drawInfo.status !== 2 ? 'placeholder' : ''}}">{{drawInfo.status === 2 && verifyInfo && verifyInfo.codesHash ? verifyInfo.codesHash : '开奖后展示'}}</text>
+    </view>
+    <view class="verify-link" wx:if="{{drawInfo.status === 2}}" bindtap="goVerifyPage">
+      <text>对结果有疑惑？去验证</text>
+    </view>
+  </view>
+
   <!-- ========== 创建者管理 ========== -->
   <view class="manage-section" wx:if="{{isOwner && !isEditing && (drawInfo.status === 0 || drawInfo.status === 1)}}">
     <view class="section-head">
@@ -148,7 +171,7 @@
   </view>
 
   <!-- ========== 奖品区域 ========== -->
-  <view class="prize-section" wx:if="{{prizes.length > 0 || (isEditing && editForm.hasPrize === 1)}}">
+  <view class="prize-section" wx:if="{{isEditing && editForm.hasPrize === 1}}">
     <view class="section-head">
       <text class="section-title">奖品一览</text>
       <text class="section-sub" wx:if="{{!isEditing}}">共 {{prizeCount}} 个奖项</text>
@@ -176,6 +199,52 @@
     </view>
   </view>
 
+  <!-- ========== 参与记录 ========== -->
+  <view class="record-section" wx:if="{{!isEditing}}">
+    <view class="record-tabs">
+      <view class="record-tab {{activePreviewTab === 'pool' ? 'active' : 'muted'}}" bindtap="switchPreviewTab" data-tab="pool">奖池预览</view>
+      <view class="record-tab {{activePreviewTab === 'records' ? 'active' : 'muted'}}" bindtap="switchPreviewTab" data-tab="records">参与记录</view>
+    </view>
+
+    <view class="pool-preview" wx:if="{{activePreviewTab === 'pool'}}">
+      <view class="pool-card" wx:for="{{prizes}}" wx:key="prizeId">
+        <image class="pool-img" src="{{item.prizeCover || '/images/default-draw.png'}}" mode="aspectFill" />
+        <view class="pool-main">
+          <text class="pool-rank rank-{{item.prizeType}}">{{item.typeName || ('奖品' + (index + 1))}}</text>
+          <text class="pool-name">{{item.prizeName}}</text>
+          <text class="pool-meta">共 {{item.amount || 1}} 份 · {{item.giveaway === 1 ? '快递邮寄' : (item.giveaway === 2 ? '联系发布者' : (item.giveaway === 3 ? '填写信息' : '其他'))}}</text>
+        </view>
+      </view>
+      <view class="pool-empty" wx:if="{{prizes.length === 0}}">
+        <text>该抽签暂无奖品，开奖时将随机抽取幸运用户</text>
+      </view>
+    </view>
+
+    <view class="record-list" wx:elif="{{joinRecords.length > 0}}">
+      <view class="record-item" wx:for="{{joinRecords}}" wx:key="drawCodeId">
+        <image class="record-avatar" src="{{item.avatar || '/images/default-avatar.png'}}" mode="aspectFill" />
+        <view class="record-main">
+          <text class="record-name">{{item.displayName}}</text>
+          <text class="record-time">{{item.joinTimeText}}</text>
+        </view>
+        <view class="record-code-wrap">
+          <text class="record-code">{{item.codeValue}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="record-empty" wx:else>
+      <text>{{recordsFinishedText || '暂无参与记录'}}</text>
+    </view>
+
+    <view class="record-load" wx:if="{{activePreviewTab === 'records' && recordsLoading}}">
+      <text>加载中...</text>
+    </view>
+    <view class="record-load done" wx:elif="{{activePreviewTab === 'records' && recordsFinishedText && joinRecords.length > 0}}">
+      <text>{{recordsFinishedText}}</text>
+    </view>
+  </view>
+
   <!-- ========== 我的签码 ========== -->
   <view class="code-section" wx:if="{{!isEditing && joined && myCodes.length > 0}}">
     <view class="section-head">
@@ -184,8 +253,11 @@
     </view>
     <view class="code-grid">
       <view class="code-chip" wx:for="{{myCodes}}" wx:key="index">
-        <text class="chip-val">{{item.codeValue || item}}</text>
-        <text class="chip-desc" wx:if="{{item.desc}}">{{item.desc}}</text>
+        <view class="chip-inner">
+          <text class="chip-label">LUCKY CODE</text>
+          <text class="chip-val">{{item.codeValue || item}}</text>
+          <text class="chip-desc" wx:if="{{item.desc}}">{{item.desc}}</text>
+        </view>
       </view>
     </view>
   </view>

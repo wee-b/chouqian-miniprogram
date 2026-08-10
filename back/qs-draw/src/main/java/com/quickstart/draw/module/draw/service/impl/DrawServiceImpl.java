@@ -22,6 +22,7 @@ import com.quickstart.draw.module.draw.service.DrawService;
 import com.quickstart.draw.module.drawCode.mapper.DrawCodeMapper;
 import com.quickstart.draw.cache.OfficialDrawCacheService;
 import com.quickstart.draw.cache.DrawRedisService;
+import com.quickstart.draw.module.drawVerify.service.DrawVerifyService;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,8 @@ public class DrawServiceImpl implements DrawService {
     private DrawRedisService drawRedisService;
     @Resource
     private OfficialDrawCacheService officialDrawCacheService;
+    @Resource
+    private DrawVerifyService drawVerifyService;
 
 
     /**
@@ -97,12 +100,13 @@ public class DrawServiceImpl implements DrawService {
         draw.setDeletedFlag(0);
         draw.setCreateTime(LocalDateTime.now());
         draw.setUpdateTime(LocalDateTime.now());
+        drawVerifyService.initCommitment(draw);
 
         drawMapper.insert(draw);
 
         // 如果是直接发布，同步参与次数限制到 Redis
         if (draw.getStatus() == DrawConstants.DRAW_STATUS_RUNNING) {
-            syncPartLimitToRedis(draw.getDrawId(), draw.getPartLimit(), draw.getJoinDeadline());
+            drawRedisService.setPartLimit(draw.getDrawId(), draw.getPartLimit(),  draw.getJoinDeadline());
         }
 
         // 清缓存
@@ -122,6 +126,7 @@ public class DrawServiceImpl implements DrawService {
         vo.setPartLimit(draw.getPartLimit());
         vo.setDrawNo(draw.getDrawNo());
         vo.setCreateTime(draw.getCreateTime());
+        vo.setSeedHash(draw.getSeedHash());
 
         return vo;
     }
@@ -138,6 +143,9 @@ public class DrawServiceImpl implements DrawService {
     @Override
     public DrawVO getDetailDraw(Long drawId, Long currentUserId) {
         Draw draw = drawMapper.selectById(drawId);
+        if (draw == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "抽签不存在");
+        }
         DrawVO vo = new DrawVO();
         BeanUtils.copyProperties(draw, vo);
         vo.setIsOwner(currentUserId != null && currentUserId.equals(draw.getPublisherUserId()));
@@ -217,17 +225,15 @@ public class DrawServiceImpl implements DrawService {
 
         draw.setStatus(DrawConstants.DRAW_STATUS_RUNNING);
         draw.setUpdateTime(LocalDateTime.now());
+        drawVerifyService.initCommitment(draw);
         drawMapper.updateById(draw);
 
         // 同步参与次数限制到 Redis
-        syncPartLimitToRedis(drawId, draw.getPartLimit(), draw.getJoinDeadline());
+        drawRedisService.setPartLimit(drawId, draw.getPartLimit(),  draw.getJoinDeadline());
 
         evictOfficialDrawCache();
     }
 
-    private void syncPartLimitToRedis(Long drawId, Integer partLimit, LocalDateTime joinDeadline) {
-        drawRedisService.setPartLimit(drawId, partLimit, joinDeadline);
-    }
 
     @Override
     public List<Draw> listExpiredRunningDraws() {

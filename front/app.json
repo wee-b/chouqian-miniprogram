@@ -8,6 +8,7 @@
     "pages/userInfo/userInfo",
     "pages/draw/draw",
     "pages/drawDetail/drawDetail",
+    "pages/drawVerify/drawVerify",
     "pages/drawList/drawList"
   ],
   "window": {

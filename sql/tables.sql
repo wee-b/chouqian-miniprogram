@@ -152,6 +152,10 @@ CREATE TABLE `qs_draw`
     `draw_time` datetime DEFAULT NULL COMMENT '实际开奖时间',
     `participant_count` int NOT NULL DEFAULT 0 COMMENT '累计参与人数',
     `code_count` int NOT NULL DEFAULT 0 COMMENT '参与码总数',
+    `server_seed` varchar(128) DEFAULT NULL COMMENT '开奖随机种子，开奖后公开',
+    `seed_hash` varchar(128) DEFAULT NULL COMMENT '开奖随机种子哈希，开奖前公开',
+    `codes_hash` varchar(128) DEFAULT NULL COMMENT '开奖时参与码集合哈希',
+    `verify_algorithm` varchar(255) DEFAULT NULL COMMENT '可验证开奖算法说明',
 
     `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态：1-进行中 2-已开奖 3-流局',
     `deleted_flag` tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除状态：0-未删除 1-已删除',

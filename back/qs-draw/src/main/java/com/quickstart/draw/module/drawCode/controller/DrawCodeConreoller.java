@@ -2,8 +2,11 @@ package com.quickstart.draw.module.drawCode.controller;
 
 import com.quickstart.common.annotation.RateLimit;
 import com.quickstart.common.domain.LoginUser;
+import com.quickstart.common.domain.PageResult;
 import com.quickstart.common.domain.ResponseDTO;
+import com.quickstart.common.domain.drawCode.dto.DrawJoinRecordPageDTO;
 import com.quickstart.common.domain.drawCode.vo.DrawCodeVO;
+import com.quickstart.common.domain.drawCode.vo.DrawJoinRecordVO;
 import com.quickstart.common.domain.winner.vo.WinnerVO;
 import com.quickstart.common.security.SecurityUserContext;
 import com.quickstart.draw.module.drawCode.service.DrawJoinService;
@@ -12,6 +15,7 @@ import com.quickstart.draw.module.drawCode.service.DrawQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -56,7 +60,7 @@ public class DrawCodeConreoller {
 
     @PostMapping("/client/draw/open/{drawId}")
     @Operation(summary = "手动开奖")
-    public ResponseDTO<Void> open(@PathVariable Long drawId) {
+    public ResponseDTO<Void> open(@PathVariable("drawId") Long drawId) {
         log.info("收到请求：/client/draw/open/{}", drawId);
         LoginUser loginUser = SecurityUserContext.getCurrentLoginUser();
         drawOpenService.openDraw(drawId, loginUser.getUserId());
@@ -69,6 +73,13 @@ public class DrawCodeConreoller {
         log.info("收到请求：/client/draw/winners?drawId={}", drawId);
         List<WinnerVO> winners = drawQueryService.getWinners(drawId);
         return ResponseDTO.ok(winners);
+    }
+
+    @PostMapping("/client/drawCode/joinRecords")
+    @Operation(summary = "分页查询抽签参与记录")
+    public ResponseDTO<PageResult<DrawJoinRecordVO>> joinRecords(@RequestBody @Valid DrawJoinRecordPageDTO dto) {
+        log.info("收到请求：/client/drawCode/joinRecords, drawId={}", dto.getDrawId());
+        return ResponseDTO.ok(drawQueryService.queryJoinRecords(dto));
     }
 
     /** 从请求头提取真实客户端IP（穿透网关/代理） */
