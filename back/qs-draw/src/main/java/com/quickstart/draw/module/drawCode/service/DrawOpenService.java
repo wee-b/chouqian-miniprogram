@@ -12,4 +12,11 @@ public interface DrawOpenService {
      * @param userId 操作人（发布者）ID
      */
     void openDraw(Long drawId, Long userId);
+
+    /**
+     * 系统自动开奖。
+     *
+     * @param drawId 抽签ID
+     */
+    void openDrawBySystem(Long drawId);
 }

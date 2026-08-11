@@ -42,6 +42,24 @@ springdoc:
       packages-to-scan: com.quickstart.draw.module  # 7. 扫描哪个包下的接口
 
 
+xxl:
+  job:
+    enabled: true
+    admin:
+      addresses: http://127.0.0.1:8888/xxl-job-admin
+      username: admin
+      password: 123456
+      jobGroupId: 1
+    accessToken:
+    executor:
+      appname: qs-draw
+      jobHandler: triggerOpenDrawHandler
+      address:
+      ip:
+      port: 9999
+      logpath: ./logs/xxl-job
+      logretentiondays: 30
+
 #knife4j:
 #  gateway:
 #    # ① 第一个配置，开启gateway聚合组件

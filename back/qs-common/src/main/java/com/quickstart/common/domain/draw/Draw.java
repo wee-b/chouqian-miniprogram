@@ -95,6 +95,11 @@ public class Draw {
      */
     private String verifyAlgorithm;
 
+    /**
+     * XXL-JOB 自动开奖任务ID，用于防止重复注册与开奖后停止任务
+     */
+    private Integer xxlJobId;
+
     /** 状态：0-草稿 1-参与中 2-已开奖 3-流局 */
     private Integer status;
     private Integer deletedFlag;

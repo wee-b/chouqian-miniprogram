@@ -79,18 +79,24 @@ INSERT INTO `qs_draw` (
     `join_deadline`,
     `min_person`,
     `per_code_num`,
+    `part_limit`,
     `draw_no`,
     `draw_time`,
     `participant_count`,
     `code_count`,
+    `server_seed`,
+    `seed_hash`,
+    `codes_hash`,
+    `verify_algorithm`,
+    `xxl_job_id`,
     `status`,
     `deleted_flag`
 ) VALUES
-      (1001, 0, '官方周末福利抽奖', 'cover/official1.jpg', '官方每周福利活动，参与即可抽奖', 1, 0, '2030-12-31 23:59:59', 50, 5, 'DRAW20251001', '2031-01-01 10:00:00', 120, 150, 1, 0),
-      (1002, 0, '节日限定幸运抽签', 'cover/official2.jpg', '节假日专属官方抽奖活动', 1, 0, '2030-12-30 23:59:59', 30, 5, 'DRAW20251002', '2030-12-31 10:00:00', 85, 100, 1, 0),
-      (1003, 0, '新人专属欢迎抽奖', 'cover/official3.jpg', '新用户首次参与必得奖励', 1, 0, '2030-12-29 23:59:59', 100, 5, 'DRAW20251003', '2030-12-30 10:00:00', 210, 250, 1, 0),
-      (1004, 0, '月度幸运用户抽签', 'cover/official4.jpg', '每月抽取幸运用户发放大奖', 1, 0, '2030-12-28 23:59:59', 200, 5, 'DRAW20251004', '2030-12-29 10:00:00', 340, 400, 1, 0),
-      (1005, 0, '官方日常福利抽签', 'cover/official5.jpg', '每日参与，每日开奖', 1, 0, '2030-12-27 23:59:59', 20, 5, 'DRAW20251005', '2030-12-28 10:00:00', 95, 120, 1, 0);
+      (1001, 0, '官方周末福利抽奖', 'cover/official1.jpg', '官方每周福利活动，参与即可抽奖', 1, 0, '2030-12-31 23:59:59', 50, 5, 1, 'DRAW20251001', '2031-01-01 10:00:00', 120, 150, NULL, NULL, NULL, NULL, NULL, 1, 0),
+      (1002, 0, '节日限定幸运抽签', 'cover/official2.jpg', '节假日专属官方抽奖活动', 1, 0, '2030-12-30 23:59:59', 30, 5, 1, 'DRAW20251002', '2030-12-31 10:00:00', 85, 100, NULL, NULL, NULL, NULL, NULL, 1, 0),
+      (1003, 0, '新人专属欢迎抽奖', 'cover/official3.jpg', '新用户首次参与必得奖励', 1, 0, '2030-12-29 23:59:59', 100, 5, 1, 'DRAW20251003', '2030-12-30 10:00:00', 210, 250, NULL, NULL, NULL, NULL, NULL, 1, 0),
+      (1004, 0, '月度幸运用户抽签', 'cover/official4.jpg', '每月抽取幸运用户发放大奖', 1, 0, '2030-12-28 23:59:59', 200, 5, 1, 'DRAW20251004', '2030-12-29 10:00:00', 340, 400, NULL, NULL, NULL, NULL, NULL, 1, 0),
+      (1005, 0, '官方日常福利抽签', 'cover/official5.jpg', '每日参与，每日开奖', 1, 0, '2030-12-27 23:59:59', 20, 5, 1, 'DRAW20251005', '2030-12-28 10:00:00', 95, 120, NULL, NULL, NULL, NULL, NULL, 1, 0);
 
 -- 奖品测试数据
 INSERT INTO `qs_prize` (`prize_id`, `draw_id`, `prize_name`, `prize_cover`, `prize_type`, `amount`, `giveaway`)
@@ -147,6 +153,7 @@ VALUES
 -- 发布者测试账号: 13800138000 / 123456
 INSERT INTO `qs_user` (`user_id`, `user_code`, `user_type`, `user_name`, `phone`, `email`, `password`, `avatar`, `gender`, `register_source`, `login_count`, `member_level_score`, `credit_score`, `status`, `deleted_flag`)
 VALUES
+    (10, 'QS000010', 2, '开奖发布者', '13800138000', 'mock10@quickstart.com', '$2a$10$0jVJHp.m6pq0ekIlZrBUsO8WnoifkC7JxtnNkwkq83JZTU1e2B4B2', '/images/default-avatar.png', 1, 1, 0, 0.00, 85, 1, 0),
     (11, 'QS000011', 2, '测试用户A', '13800138011', 'mock11@quickstart.com', '$2a$10$0jVJHp.m6pq0ekIlZrBUsO8WnoifkC7JxtnNkwkq83JZTU1e2B4B2', '/images/default-avatar.png', 2, 1, 0, 0.00, 82, 1, 0),
     (12, 'QS000012', 2, '测试用户B', '13800138012', 'mock12@quickstart.com', '$2a$10$0jVJHp.m6pq0ekIlZrBUsO8WnoifkC7JxtnNkwkq83JZTU1e2B4B2', '/images/default-avatar.png', 1, 1, 0, 0.00, 79, 1, 0),
     (13, 'QS000013', 2, '测试用户C', '13800138013', 'mock13@quickstart.com', '$2a$10$0jVJHp.m6pq0ekIlZrBUsO8WnoifkC7JxtnNkwkq83JZTU1e2B4B2', '/images/default-avatar.png', 2, 1, 0, 0.00, 76, 1, 0),
@@ -170,11 +177,16 @@ INSERT INTO `qs_draw` (
     `draw_time`,
     `participant_count`,
     `code_count`,
+    `server_seed`,
+    `seed_hash`,
+    `codes_hash`,
+    `verify_algorithm`,
+    `xxl_job_id`,
     `status`,
     `deleted_flag`
 ) VALUES
-    (1010, 10, '手动开奖测试-有奖品', 'cover/manual-prize.jpg', '用于测试手动开奖，有奖品配置，登录 13800138000 后可直接开奖', 1, 2, '2030-12-31 23:59:59', 1, 1, 1, 'DRAW-MANUAL-PRIZE-1010', NULL, 5, 5, 1, 0),
-    (1011, 10, '手动开奖测试-无奖品', 'cover/manual-no-prize.jpg', '用于测试手动开奖，无奖品时随机抽取一名幸运用户', 0, 2, '2030-12-31 23:59:59', 1, 1, 1, 'DRAW-MANUAL-NOPRIZE-1011', NULL, 5, 5, 1, 0);
+    (1010, 10, '手动开奖测试-有奖品', 'cover/manual-prize.jpg', '用于测试手动开奖，有奖品配置，登录 13800138000 后可直接开奖', 1, 2, '2030-12-31 23:59:59', 1, 1, 1, 'DRAW-MANUAL-PRIZE-1010', NULL, 5, 5, NULL, NULL, NULL, NULL, NULL, 1, 0),
+    (1011, 10, '手动开奖测试-无奖品', 'cover/manual-no-prize.jpg', '用于测试手动开奖，无奖品时随机抽取一名幸运用户', 0, 2, '2030-12-31 23:59:59', 1, 1, 1, 'DRAW-MANUAL-NOPRIZE-1011', NULL, 5, 5, NULL, NULL, NULL, NULL, NULL, 1, 0);
 
 -- 手动开奖测试奖品，仅 1010 有奖品
 INSERT INTO `qs_prize` (`prize_id`, `draw_id`, `prize_name`, `prize_cover`, `prize_type`, `amount`, `giveaway`)
@@ -195,4 +207,3 @@ VALUES
     (3022, 13, 1011, NULL, 'MTB3Q7R8', '2030-12-26 10:10:23'),
     (3023, 14, 1011, NULL, 'MTB4S9T1', '2030-12-26 10:15:34'),
     (3024, 15, 1011, NULL, 'MTB5U2V3', '2030-12-26 10:20:45');
-

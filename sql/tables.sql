@@ -156,6 +156,7 @@ CREATE TABLE `qs_draw`
     `seed_hash` varchar(128) DEFAULT NULL COMMENT '开奖随机种子哈希，开奖前公开',
     `codes_hash` varchar(128) DEFAULT NULL COMMENT '开奖时参与码集合哈希',
     `verify_algorithm` varchar(255) DEFAULT NULL COMMENT '可验证开奖算法说明',
+    `xxl_job_id` int DEFAULT NULL COMMENT 'XXL-JOB自动开奖任务ID',
 
     `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态：1-进行中 2-已开奖 3-流局',
     `deleted_flag` tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除状态：0-未删除 1-已删除',
@@ -163,6 +164,7 @@ CREATE TABLE `qs_draw`
     `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`draw_id`),
     UNIQUE KEY `uk_draw_no` (`draw_no`),
+    UNIQUE KEY `uk_xxl_job_id` (`xxl_job_id`),
     KEY `idx_publisher_status_deadline` (`publisher_user_id`, `status`,`create_time`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '抽签主表';
 
@@ -248,3 +250,37 @@ CREATE TABLE `qs_draw_task`
     UNIQUE KEY `uk_join_task` (`task_type`, `draw_participant_id`),
     KEY `idx_task_status_retry` (`task_status`, `next_retry_time`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '抽签异步任务表';
+
+
+-- 2.7 通用操作日志表
+DROP TABLE IF EXISTS `qs_op_log`;
+CREATE TABLE `qs_op_log`
+(
+    `op_log_id` bigint NOT NULL AUTO_INCREMENT COMMENT '操作日志ID',
+    `trace_id` varchar(64) NOT NULL COMMENT '链路追踪ID',
+    `user_id` bigint DEFAULT NULL COMMENT '操作用户ID',
+    `user_code` varchar(50) DEFAULT NULL COMMENT '操作用户编码',
+    `module` varchar(64) NOT NULL COMMENT '业务模块',
+    `action` varchar(64) NOT NULL COMMENT '操作动作',
+    `biz_type` varchar(64) DEFAULT NULL COMMENT '业务类型，如 DRAW_JOIN、DRAW_OPEN',
+    `biz_id` varchar(64) DEFAULT NULL COMMENT '业务主键，如 drawId、taskId',
+    `request_uri` varchar(255) DEFAULT NULL COMMENT '请求路径',
+    `request_method` varchar(16) DEFAULT NULL COMMENT '请求方法',
+    `params` text DEFAULT NULL COMMENT '请求或业务参数JSON',
+    `ip` varchar(50) DEFAULT NULL COMMENT '客户端IP',
+    `cost` bigint DEFAULT NULL COMMENT '接口耗时，单位毫秒',
+    `success` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否成功：0-失败 1-成功',
+    `error_code` varchar(64) DEFAULT NULL COMMENT '失败错误码',
+    `error_msg` varchar(1000) DEFAULT NULL COMMENT '失败错误信息',
+    `rollback_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '回滚状态：0-无需回滚 1-待回滚 2-回滚成功 3-回滚失败',
+    `rollback_msg` varchar(1000) DEFAULT NULL COMMENT '回滚结果说明',
+    `rollback_time` datetime DEFAULT NULL COMMENT '回滚完成时间',
+    `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`op_log_id`),
+    UNIQUE KEY `uk_trace_id` (`trace_id`),
+    KEY `idx_user_create_time` (`user_id`, `create_time`),
+    KEY `idx_biz` (`biz_type`, `biz_id`),
+    KEY `idx_action_success_create_time` (`action`, `success`, `create_time`),
+    KEY `idx_rollback_status_create_time` (`rollback_status`, `create_time`)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '通用操作日志表';

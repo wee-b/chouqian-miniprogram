@@ -9,6 +9,9 @@ public final class DrawConstants {
     public static final int DRAW_STATUS_OPENED = 2;
     public static final int DRAW_STATUS_EMPTY = 3;
 
+    public static final int DRAWING_WAY_TIME = 0;
+    public static final int DRAWING_WAY_PERSON_COUNT = 1;
+
     public static final int DEFAULT_CODE_COUNT_PER_USER = 5;
     public static final int MAX_DRAW_EXPIRE_DAYS = 1000;
 }

@@ -21,6 +21,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- XXL-JOB -->
+        <dependency>
+            <groupId>com.xuxueli</groupId>
+            <artifactId>xxl-job-core</artifactId>
+            <version>2.4.1</version>
+        </dependency>
+
         <!-- Dubbo 接口契约（Consumer 依赖，用于 @DubboReference 注入） -->
         <dependency>
             <groupId>com.quickStart</groupId>

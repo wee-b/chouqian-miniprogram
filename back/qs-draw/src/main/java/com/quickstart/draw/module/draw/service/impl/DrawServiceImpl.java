@@ -22,10 +22,12 @@ import com.quickstart.draw.module.draw.service.DrawService;
 import com.quickstart.draw.module.drawCode.mapper.DrawCodeMapper;
 import com.quickstart.draw.cache.OfficialDrawCacheService;
 import com.quickstart.draw.cache.DrawRedisService;
+import com.quickstart.draw.job.DrawOpenScheduleService;
 import com.quickstart.draw.module.drawVerify.service.DrawVerifyService;
 import jakarta.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +52,8 @@ public class DrawServiceImpl implements DrawService {
     private OfficialDrawCacheService officialDrawCacheService;
     @Resource
     private DrawVerifyService drawVerifyService;
+    @Autowired
+    private ObjectProvider<DrawOpenScheduleService> drawOpenScheduleServiceProvider;
 
 
     /**
@@ -107,6 +111,7 @@ public class DrawServiceImpl implements DrawService {
         // 如果是直接发布，同步参与次数限制到 Redis
         if (draw.getStatus() == DrawConstants.DRAW_STATUS_RUNNING) {
             drawRedisService.setPartLimit(draw.getDrawId(), draw.getPartLimit(),  draw.getJoinDeadline());
+            scheduleAutoOpenIfNeeded(draw);
         }
 
         // 清缓存
@@ -230,8 +235,16 @@ public class DrawServiceImpl implements DrawService {
 
         // 同步参与次数限制到 Redis
         drawRedisService.setPartLimit(drawId, draw.getPartLimit(),  draw.getJoinDeadline());
+        scheduleAutoOpenIfNeeded(draw);
 
         evictOfficialDrawCache();
+    }
+
+    private void scheduleAutoOpenIfNeeded(Draw draw) {
+        DrawOpenScheduleService scheduleService = drawOpenScheduleServiceProvider.getIfAvailable();
+        if (scheduleService != null) {
+            scheduleService.scheduleAfterCommit(draw);
+        }
     }
 
 

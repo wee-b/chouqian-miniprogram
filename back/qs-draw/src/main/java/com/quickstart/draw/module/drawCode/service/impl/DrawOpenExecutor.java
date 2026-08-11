@@ -9,6 +9,7 @@ import com.quickstart.common.domain.user.User;
 import com.quickstart.common.domain.winner.Winner;
 import com.quickstart.common.exception.BusinessException;
 import com.quickstart.draw.constant.DrawConstants;
+import com.quickstart.draw.job.DrawOpenScheduleService;
 import com.quickstart.draw.mapper.UserReadMapper;
 import com.quickstart.draw.module.draw.mapper.DrawMapper;
 import com.quickstart.draw.module.drawCode.mapper.DrawCodeMapper;
@@ -17,6 +18,7 @@ import com.quickstart.draw.module.drawCode.service.DrawOpenService;
 import com.quickstart.draw.module.drawVerify.service.DrawVerifyService;
 import com.quickstart.draw.module.prize.mapper.PrizeMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +44,8 @@ public class DrawOpenExecutor implements DrawOpenService {
     private UserReadMapper userReadMapper;
     @Autowired
     private DrawVerifyService drawVerifyService;
+    @Autowired
+    private ObjectProvider<DrawOpenScheduleService> drawOpenScheduleServiceProvider;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -54,6 +58,34 @@ public class DrawOpenExecutor implements DrawOpenService {
         if (!draw.getPublisherUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN, "只能开奖自己发布的抽签");
         }
+        doOpenDraw(draw, false);
+        removeAutoOpenJobAfterManualOpen(draw);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void openDrawBySystem(Long drawId) {
+        Draw draw = drawMapper.selectById(drawId);
+        if (draw == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "抽签不存在");
+        }
+        if (draw.getStatus() != null
+                && (draw.getStatus() == DrawConstants.DRAW_STATUS_OPENED
+                || draw.getStatus() == DrawConstants.DRAW_STATUS_EMPTY)) {
+            return;
+        }
+
+        if (draw.getJoinDeadline() != null && draw.getJoinDeadline().isAfter(LocalDateTime.now())) {
+            throw new BusinessException(ErrorCode.BUSINESS_ERROR, "抽签尚未到达自动开奖时间");
+        }
+
+        doOpenDraw(draw, true);
+
+    }
+
+    private void doOpenDraw(Draw draw, boolean systemOpen){
+
+        Long drawId = draw.getDrawId();
         if (draw.getStatus() != DrawConstants.DRAW_STATUS_RUNNING) {
             throw new BusinessException(ErrorCode.BUSINESS_ERROR, "只有进行中的抽签才能开奖");
         }
@@ -65,6 +97,13 @@ public class DrawOpenExecutor implements DrawOpenService {
         List<DrawCode> codes = drawCodeMapper.selectList(codeWrapper);
 
         if (codes.isEmpty()) {
+            if (systemOpen) {
+                draw.setStatus(DrawConstants.DRAW_STATUS_EMPTY);
+                draw.setDrawTime(LocalDateTime.now());
+                draw.setUpdateTime(LocalDateTime.now());
+                drawMapper.updateById(draw);
+                return;
+            }
             throw new BusinessException(ErrorCode.BUSINESS_ERROR, "没有可开奖的抽签码，参与者不足");
         }
 
@@ -118,6 +157,7 @@ public class DrawOpenExecutor implements DrawOpenService {
         drawMapper.updateById(draw);
     }
 
+
     private Winner buildWinner(DrawCode selectedCode, Long drawId, Long prizeId) {
         User winnerUser = userReadMapper.selectById(selectedCode.getUserId());
         Winner winner = new Winner();
@@ -128,5 +168,12 @@ public class DrawOpenExecutor implements DrawOpenService {
         winner.setUserName(winnerUser != null ? winnerUser.getUserName() : "");
         winner.setAvatar(winnerUser != null ? winnerUser.getAvatar() : null);
         return winner;
+    }
+
+    private void removeAutoOpenJobAfterManualOpen(Draw draw) {
+        DrawOpenScheduleService scheduleService = drawOpenScheduleServiceProvider.getIfAvailable();
+        if (scheduleService != null) {
+            scheduleService.removeAfterCommit(draw);
+        }
     }
 }
