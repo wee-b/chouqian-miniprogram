@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -23,11 +24,18 @@ public class LoginUser implements UserDetails {
 
     public LoginUser(User user, List<String> permissions) {
         this.user = user;
-        this.permissions = permissions;
+        setPermissions(permissions);
     }
 
     @JsonIgnore
     private List<SimpleGrantedAuthority> authorities;
+
+    public void setPermissions(List<String> permissions) {
+        this.permissions = permissions == null || permissions.isEmpty()
+                ? Collections.emptyList()
+                : new ArrayList<>(permissions);
+        this.authorities = null;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -5,6 +5,7 @@ import auth from '../../utils/auth.js'
 Page({
   data: {
     isLogin: false,
+    unreadNotifyCount: 0,
     // 用户信息
     userInfo: {
       avatarUrl: '',
@@ -33,6 +34,10 @@ Page({
   },
 
   onShow() {
+    const app = getApp()
+    this.setData({
+      unreadNotifyCount: app && app.globalData ? (app.globalData.unreadNotifyCount || 0) : 0
+    })
     this.loadUserPageData()
   },
 
@@ -58,6 +63,11 @@ Page({
 
     // 4. 已登录 → 请求最新数据
     await Promise.all([this.getUserInfoFromApi(), this.loadStatistics()])
+    const app = getApp()
+    if (app && app.refreshUnreadCount) {
+      await app.refreshUnreadCount()
+      this.setData({ unreadNotifyCount: app.globalData.unreadNotifyCount || 0 })
+    }
   },
 
   /**
@@ -78,6 +88,10 @@ Page({
 
         // 同步更新本地存储（保持最新）
         auth.setLoginInfo(auth.getToken(), this.data.userInfo)
+        const app = getApp()
+        if (app && app.connectNotifySocket) {
+          app.connectNotifySocket()
+        }
       }else if(res.code === 401){
         wx.showToast({ title: '登录信息已失效', icon: 'none' })
         // this.goLogin()
@@ -129,10 +143,16 @@ Page({
 
         // 清除登录状态
         auth.logout()
+        const app = getApp()
+        if (app) {
+          if (app.closeNotifySocket) app.closeNotifySocket()
+          if (app.setUnreadCount) app.setUnreadCount(0)
+        }
 
         // 重置页面
         this.setData({
           isLogin: false,
+          unreadNotifyCount: 0,
           userInfo: {
             avatarUrl: '',
             nickName: '点击登录',
@@ -152,6 +172,21 @@ Page({
       return
     }
     wx.showToast({ title: '心愿功能开发中', icon: 'none' })
+  },
+
+  goMessage() {
+    if (!this.data.isLogin) {
+      wx.navigateTo({ url: '/pages/login/login' })
+      return
+    }
+    wx.navigateTo({ url: '/pages/message/message' })
+  },
+
+  handleGlobalNotifyTap() {
+    const app = getApp()
+    if (app && app.handleGlobalNotifyTap) {
+      app.handleGlobalNotifyTap(this)
+    }
   },
 
   // 发布抽奖

@@ -16,6 +16,7 @@ import com.quickstart.draw.module.drawCode.mapper.DrawCodeMapper;
 import com.quickstart.draw.module.drawCode.mapper.WinnerMapper;
 import com.quickstart.draw.module.drawCode.service.DrawOpenService;
 import com.quickstart.draw.module.drawVerify.service.DrawVerifyService;
+import com.quickstart.draw.module.notify.service.DrawNotifyService;
 import com.quickstart.draw.module.prize.mapper.PrizeMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.ObjectProvider;
@@ -46,6 +47,8 @@ public class DrawOpenExecutor implements DrawOpenService {
     private DrawVerifyService drawVerifyService;
     @Autowired
     private ObjectProvider<DrawOpenScheduleService> drawOpenScheduleServiceProvider;
+    @Autowired
+    private DrawNotifyService drawNotifyService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -155,6 +158,8 @@ public class DrawOpenExecutor implements DrawOpenService {
         draw.setCodesHash(codesHash);
         draw.setUpdateTime(LocalDateTime.now());
         drawMapper.updateById(draw);
+
+        drawNotifyService.notifyDrawOpenedAfterCommit(drawId);
     }
 
 

@@ -1,0 +1,49 @@
+<view class="global-notify-toast {{globalNotifyVisible ? 'show' : ''}}" style="top: {{globalNotifyTop || 24}}px;" bindtap="handleGlobalNotifyTap">
+  <view class="global-notify-badge">{{globalNotifyTypeText || '通知'}}</view>
+  <view class="global-notify-body">
+    <view class="global-notify-title">{{globalNotifyTitle}}</view>
+    <view class="global-notify-content">{{globalNotifyContent}}</view>
+  </view>
+</view>
+<view class="message-nav" style="height: {{pageTop}}px;">
+  <view class="back-btn" bindtap="goBack">‹</view>
+  <text class="nav-title">消息中心</text>
+</view>
+<view class="message-page" style="padding-top: {{pageTop}}px;">
+  <view class="toolbar" wx:if="{{list.length > 0}}">
+    <text class="toolbar-title">消息通知</text>
+    <view class="read-all-btn" bindtap="handleReadAll">全部已读</view>
+  </view>
+
+  <view wx:if="{{list.length > 0}}" class="message-list">
+    <view
+      class="message-item {{item.unread ? 'unread' : ''}}"
+      wx:for="{{list}}"
+      wx:key="notifyId"
+      data-index="{{index}}"
+      bindtap="handleMessageTap"
+    >
+      <view class="type-badge {{item.bizType}}">{{item.typeText}}</view>
+      <view class="message-main">
+        <view class="message-head">
+          <text class="message-title">{{item.title}}</text>
+          <view class="unread-dot" wx:if="{{item.unread}}"></view>
+        </view>
+        <text class="message-content">{{item.content}}</text>
+        <text class="message-time">{{item.timeText}}</text>
+      </view>
+      <image class="arrow" src="/images/icons/arrow-right.png" />
+    </view>
+  </view>
+
+  <view class="load-more" wx:if="{{list.length > 0}}">
+    <text wx:if="{{loading}}">加载中...</text>
+    <text wx:elif="{{!hasMore}}">— 没有更多了 —</text>
+  </view>
+
+  <view class="empty-wrap" wx:if="{{empty && !loading}}">
+    <image class="empty-img" src="/images/default-draw.png" />
+    <text class="empty-title">暂无消息</text>
+    <text class="empty-desc">抽签码生成、开奖和中奖通知会出现在这里</text>
+  </view>
+</view>

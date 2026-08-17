@@ -10,6 +10,14 @@ Page({
     searched: false
   },
 
+  onShow() {
+    if (!auth.isLogin()) return;
+    const app = getApp();
+    if (app && app.connectNotifySocket) {
+      app.connectNotifySocket();
+    }
+  },
+
   onPassCodeInput(e) {
     this.setData({ passCode: e.detail.value });
   },
@@ -73,5 +81,12 @@ Page({
       searchResult: null,
       searched: false
     });
+  },
+
+  handleGlobalNotifyTap() {
+    const app = getApp();
+    if (app && app.handleGlobalNotifyTap) {
+      app.handleGlobalNotifyTap(this);
+    }
   }
 });

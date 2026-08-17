@@ -34,6 +34,11 @@ Page({
   onShow() {
     if (!auth.isLogin()) {
       this.setData({ list: [], empty: true, hasMore: false });
+      return;
+    }
+    const app = getApp();
+    if (app && app.connectNotifySocket) {
+      app.connectNotifySocket();
     }
   },
 
@@ -93,6 +98,13 @@ Page({
   goDetail(e) {
     const drawId = e.currentTarget.dataset.drawid;
     wx.navigateTo({ url: '/pages/drawDetail/drawDetail?drawId=' + drawId });
+  },
+
+  handleGlobalNotifyTap() {
+    const app = getApp();
+    if (app && app.handleGlobalNotifyTap) {
+      app.handleGlobalNotifyTap(this);
+    }
   },
 
   onShareAppMessage() {

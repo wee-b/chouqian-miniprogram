@@ -13,6 +13,7 @@ import com.quickstart.draw.constant.DrawConstants;
 import com.quickstart.draw.dubbo.DrawDubboConsumer;
 import com.quickstart.draw.module.draw.mapper.DrawMapper;
 import com.quickstart.draw.module.drawCode.mapper.DrawCodeMapper;
+import com.quickstart.draw.module.notify.service.DrawNotifyService;
 import com.quickstart.draw.util.DrawCodeGenerator;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,8 @@ public class DrawJoinExecutor {
     private DrawRedisService drawRedisService;
     @Autowired
     private DrawDubboConsumer dubboConsumer;
+    @Resource
+    private DrawNotifyService drawNotifyService;
 
     /**
      * 参与抽签核心流程（Local / MQ 共用）
@@ -94,6 +97,8 @@ public class DrawJoinExecutor {
             if (perCodeNum <= 0) {
                 throw new IllegalArgumentException("每人参与码数量配置错误");
             }
+            // TODO 模拟抽签码生成耗时，方便前端观察异步通知与实时推送链路。
+            sleepBeforeGenerateCode();
             List<String> codeValues = drawCodeGenerator.batchGenerate(perCodeNum);
 
             // 7. 组装批量插入
@@ -129,6 +134,8 @@ public class DrawJoinExecutor {
             opLog.setSuccess(true);
             dubboConsumer.opLog().recordAsync(opLog);
 
+            drawNotifyService.notifyDrawJoinedAfterCommit(drawId, userId, codeValues);
+
             return codeValues;
         } catch (RuntimeException e) {
             if (partCountAcquired) {
@@ -147,6 +154,14 @@ public class DrawJoinExecutor {
         }
         if (draw.getJoinDeadline() != null && draw.getJoinDeadline().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("抽奖已截止，无法参与");
+        }
+    }
+
+    private void sleepBeforeGenerateCode() {
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 }

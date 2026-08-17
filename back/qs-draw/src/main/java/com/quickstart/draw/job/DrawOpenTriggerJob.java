@@ -1,7 +1,6 @@
 package com.quickstart.draw.job;
 
 import com.quickstart.draw.module.drawCode.service.DrawOpenService;
-import com.quickstart.draw.module.notify.service.DrawNotifyService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.extern.slf4j.Slf4j;
@@ -20,16 +19,13 @@ public class DrawOpenTriggerJob {
     private static final String AUTO_OPEN_LOCK_KEY = "qs:draw:auto-open:lock:";
 
     private final DrawOpenService drawOpenService;
-    private final DrawNotifyService drawNotifyService;
     private final RedissonClient redissonClient;
     private final XxlJobAdminClient xxlJobAdminClient;
 
     public DrawOpenTriggerJob(DrawOpenService drawOpenService,
-                              DrawNotifyService drawNotifyService,
                               RedissonClient redissonClient,
                               XxlJobAdminClient xxlJobAdminClient) {
         this.drawOpenService = drawOpenService;
-        this.drawNotifyService = drawNotifyService;
         this.redissonClient = redissonClient;
         this.xxlJobAdminClient = xxlJobAdminClient;
     }
@@ -58,7 +54,6 @@ public class DrawOpenTriggerJob {
             }
 
             drawOpenService.openDrawBySystem(drawId);
-            drawNotifyService.notifyDrawOpenedAsync(drawId);
             stopCurrentJobQuietly();
 
             XxlJobHelper.handleSuccess("自动开奖成功，drawId=" + drawId);

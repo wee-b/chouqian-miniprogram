@@ -921,6 +921,14 @@ page { background: #f0f2f5; }
   box-shadow: 0 10rpx 24rpx rgba(238,90,36,0.28);
 }
 
+.btn-main.generating,
+.btn-main[disabled].generating {
+  background: #eef3fb;
+  color: #4b82f6;
+  box-shadow: none;
+  opacity: 1;
+}
+
 .joined-bar {
   display: flex;
   align-items: center;

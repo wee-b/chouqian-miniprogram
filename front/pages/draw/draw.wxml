@@ -1,4 +1,12 @@
 <!--pages/draw/draw.wxml-->
+<view class="global-notify-toast {{globalNotifyVisible ? 'show' : ''}}" style="top: {{globalNotifyTop || 24}}px;" bindtap="handleGlobalNotifyTap">
+  <view class="global-notify-badge">{{globalNotifyTypeText || '通知'}}</view>
+  <view class="global-notify-body">
+    <view class="global-notify-title">{{globalNotifyTitle}}</view>
+    <view class="global-notify-content">{{globalNotifyContent}}</view>
+  </view>
+</view>
+
 <view class="draw-page">
   <!-- 顶部说明 -->
   <view class="page-header">

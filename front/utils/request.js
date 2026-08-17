@@ -1,6 +1,6 @@
 // 基础地址（本机 Spring Cloud Gateway）
 // 微信开发者工具可用 http://127.0.0.1:8080；真机调试需使用电脑当前局域网 IP。
-const baseUrl = "http://192.168.31.6:8080";
+import { baseUrl } from './config.js';
 import auth from './auth.js';
 
 // ======================

@@ -9,7 +9,8 @@
     "pages/draw/draw",
     "pages/drawDetail/drawDetail",
     "pages/drawVerify/drawVerify",
-    "pages/drawList/drawList"
+    "pages/drawList/drawList",
+    "pages/message/message"
   ],
   "window": {
     "navigationBarBackgroundColor": "#96CDCD",

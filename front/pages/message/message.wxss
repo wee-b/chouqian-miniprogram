@@ -1,0 +1,190 @@
+page {
+  background: #f5f5f5;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.message-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  box-sizing: border-box;
+  padding: 0 24rpx 18rpx;
+  background: #f5f5f5;
+}
+
+.back-btn {
+  width: 64rpx;
+  height: 56rpx;
+  line-height: 50rpx;
+  text-align: center;
+  font-size: 58rpx;
+  color: #222;
+  flex-shrink: 0;
+}
+
+.nav-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #222;
+  margin-left: 8rpx;
+  line-height: 56rpx;
+}
+
+.message-page {
+  min-height: 100vh;
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.toolbar-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #222;
+}
+
+.read-all-btn {
+  font-size: 26rpx;
+  color: #1677ff;
+  padding: 12rpx 0 12rpx 24rpx;
+}
+
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.message-item {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+}
+
+.message-item.unread {
+  background: #f7fbff;
+}
+
+.type-badge {
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24rpx;
+  flex-shrink: 0;
+  background: #1677ff;
+}
+
+.type-badge.WINNER_NOTICE {
+  background: #f5222d;
+}
+
+.type-badge.DRAW_OPENED {
+  background: #52c41a;
+}
+
+.type-badge.DRAW_CODE_FAILED {
+  background: #fa8c16;
+}
+
+.message-main {
+  flex: 1;
+  min-width: 0;
+  margin-left: 20rpx;
+}
+
+.message-head {
+  display: flex;
+  align-items: center;
+}
+
+.message-title {
+  flex: 1;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #222;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unread-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #ff4d4f;
+  margin-left: 12rpx;
+  flex-shrink: 0;
+}
+
+.message-content {
+  display: block;
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.5;
+  margin-top: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message-time {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 8rpx;
+}
+
+.arrow {
+  width: 20rpx;
+  height: 20rpx;
+  margin-left: 16rpx;
+  flex-shrink: 0;
+}
+
+.load-more {
+  text-align: center;
+  padding: 36rpx 0;
+  color: #999;
+  font-size: 26rpx;
+}
+
+.empty-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 220rpx;
+}
+
+.empty-img {
+  width: 200rpx;
+  height: 200rpx;
+  opacity: 0.35;
+}
+
+.empty-title {
+  margin-top: 24rpx;
+  font-size: 30rpx;
+  color: #333;
+}
+
+.empty-desc {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #999;
+}

@@ -1,3 +1,10 @@
+<view class="global-notify-toast {{globalNotifyVisible ? 'show' : ''}}" style="top: {{globalNotifyTop || 24}}px;" bindtap="handleGlobalNotifyTap">
+  <view class="global-notify-badge">{{globalNotifyTypeText || '通知'}}</view>
+  <view class="global-notify-body">
+    <view class="global-notify-title">{{globalNotifyTitle}}</view>
+    <view class="global-notify-content">{{globalNotifyContent}}</view>
+  </view>
+</view>
 <view class="mine-container">
   <!-- 1. 个人信息卡片 -->
   <view class="user-card" bindtap="goLogin">
@@ -12,9 +19,10 @@
         <text class="tip" wx:if="{{isLogin}}">欢迎使用抽签小程序</text>
       </view>
     </view>
-    <view class="wish-entry">
-      <view class="red-dot" wx:if="{{isLogin}}"></view>
-      <text wx:if="{{isLogin}}">心愿</text>
+    <view class="wish-entry" bindtap="goMessage">
+      <view class="red-dot" wx:if="{{isLogin && unreadNotifyCount > 0}}"></view>
+      <text wx:if="{{isLogin}}">消息</text>
+      <text class="notify-count" wx:if="{{isLogin && unreadNotifyCount > 0}}">{{unreadNotifyCount > 99 ? '99+' : unreadNotifyCount}}</text>
       <image class="arrow" src="/images/icons/arrow-right.png" wx:if="{{isLogin}}" />
     </view>
   </view>

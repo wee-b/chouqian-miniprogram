@@ -321,6 +321,13 @@ Page({
     this.doSubmit({}, this.data.editMode ? '修改成功' : '创建成功');
   },
 
+  handleGlobalNotifyTap: function() {
+    var app = getApp();
+    if (app && app.handleGlobalNotifyTap) {
+      app.handleGlobalNotifyTap(this);
+    }
+  },
+
   doSubmit: function(extraParams, successMsg) {
     var that = this;
     if (this.data.submitting) return;

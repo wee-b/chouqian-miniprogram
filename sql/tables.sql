@@ -252,7 +252,31 @@ CREATE TABLE `qs_draw_task`
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '抽签异步任务表';
 
 
--- 2.7 通用操作日志表
+-- 2.7 系统通知消息表
+DROP TABLE IF EXISTS `qs_notify_message`;
+CREATE TABLE `qs_notify_message`
+(
+    `notify_id` bigint NOT NULL AUTO_INCREMENT COMMENT '通知ID',
+    `user_id` bigint NOT NULL COMMENT '接收用户ID',
+    `biz_type` varchar(64) NOT NULL COMMENT '业务通知类型',
+    `biz_id` varchar(128) NOT NULL COMMENT '业务ID或幂等键',
+    `title` varchar(100) NOT NULL COMMENT '通知标题',
+    `content` varchar(500) DEFAULT NULL COMMENT '通知内容',
+    `payload` json DEFAULT NULL COMMENT '扩展数据，如drawId、抽签码、跳转参数',
+    `read_flag` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否已读：0-未读 1-已读',
+    `push_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '推送状态：0-待推送 1-成功 2-失败',
+    `deleted_flag` tinyint(1) NOT NULL DEFAULT 0 COMMENT '删除标记：0-正常 1-删除',
+    `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    PRIMARY KEY (`notify_id`),
+    UNIQUE KEY `uk_notify_biz_user` (`biz_type`, `biz_id`, `user_id`),
+    KEY `idx_user_read_time` (`user_id`, `read_flag`, `create_time`),
+    KEY `idx_user_time` (`user_id`, `create_time`),
+    KEY `idx_biz` (`biz_type`, `biz_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统通知消息表';
+
+
+-- 2.8 通用操作日志表
 DROP TABLE IF EXISTS `qs_op_log`;
 CREATE TABLE `qs_op_log`
 (

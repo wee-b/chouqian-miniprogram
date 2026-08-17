@@ -86,6 +86,13 @@ Page({
     wx.navigateTo({ url: '/pages/drawDetail/drawDetail?drawId=' + drawId });
   },
 
+  handleGlobalNotifyTap() {
+    const app = getApp();
+    if (app && app.handleGlobalNotifyTap) {
+      app.handleGlobalNotifyTap(this);
+    }
+  },
+
   goPassCode() {
     wx.navigateTo({ url: '/pages/draw/draw' });
   },

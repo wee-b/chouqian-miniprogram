@@ -41,11 +41,16 @@ spring:
             - Path=/draw/v3/api-docs/**
           filters:
             - StripPrefix=1
+        # 抽奖服务 WebSocket 实时通知
+        - id: qs-draw-websocket
+          uri: lb:ws://qs-draw
+          predicates:
+            - Path=/ws/notify
         # 抽奖服务
         - id: qs-draw
           uri: lb://qs-draw
           predicates:
-            - Path=/client/draw/**, /client/drawCode/**, /client/prize/**
+            - Path=/client/draw/**, /client/drawCode/**, /client/prize/**, /client/notify/**
         # 用户/系统服务（兜底）
         - id: qs-client
           uri: lb://qs-client

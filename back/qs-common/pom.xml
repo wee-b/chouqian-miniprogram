@@ -34,6 +34,13 @@
             <artifactId>spring-security-core</artifactId>
         </dependency>
 
+        <!-- Dubbo Security ObjectMapper SPI（仅编译期；运行服务自身已依赖 Dubbo） -->
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo-spring-boot-starter</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

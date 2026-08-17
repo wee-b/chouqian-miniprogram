@@ -64,6 +64,12 @@ page {
   font-size: 28rpx;
 }
 
+.notify-count {
+  color: #ff4d4f;
+  font-size: 24rpx;
+  margin-left: 8rpx;
+}
+
 .red-dot {
   width: 10rpx;
   height: 10rpx;

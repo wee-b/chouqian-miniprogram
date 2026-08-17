@@ -52,6 +52,7 @@ Page({
         const user = res.data.user || {};
         const userInfo = {
           userId: user.userId,
+          memberCode: user.memberCode,
           nickName: user.userName || '用户' + phone.slice(-4),
           avatarUrl: user.avatarUrl || '/images/login-avatar.png',
           phone: phone,
@@ -59,6 +60,10 @@ Page({
         };
 
         auth.setLoginInfo(token, userInfo);
+        const app = getApp();
+        if (app && app.connectNotifySocket) {
+          app.connectNotifySocket();
+        }
         wx.showToast({ title: '登录成功', icon: 'success' });
         setTimeout(() => wx.navigateBack(), 1200);
       } else {

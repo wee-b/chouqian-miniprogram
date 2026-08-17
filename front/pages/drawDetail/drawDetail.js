@@ -40,6 +40,8 @@ Page({
     passCodeExpireHours: 24,
     passCodeExpireText: '',
     generating: false,
+    joinSubmitting: false,
+    joinPendingText: '抽签码生成中',
 
     // 编辑模式
     isEditing: false,
@@ -55,6 +57,7 @@ Page({
   },
 
   onLoad(options) {
+    this._unloaded = false;
     const drawId = options.drawId;
     if (!drawId) {
       wx.showToast({ title: '参数错误', icon: 'none' });
@@ -64,7 +67,16 @@ Page({
     this.setData({ drawId });
   },
 
+  onUnload() {
+    this._unloaded = true;
+    this.stopJoinResultPolling();
+  },
+
   onShow() {
+    const app = getApp();
+    if (app && app.connectNotifySocket) {
+      app.connectNotifySocket();
+    }
     this.loadAllData();
   },
 
@@ -74,8 +86,11 @@ Page({
     }
   },
 
-  async loadAllData() {
-    this.setData({ loading: true });
+  async loadAllData(options) {
+    const silent = options && options.silent;
+    if (!silent) {
+      this.setData({ loading: true });
+    }
     try {
       await Promise.all([this.loadDrawDetail(), this.loadPrizes()]);
       var info = this.data.drawInfo;
@@ -91,7 +106,12 @@ Page({
     } catch (e) {
       console.error('加载数据失败', e);
     }
-    this.setData({ loading: false });
+    if (silent) {
+      this.stopJoinResultPolling();
+      this.setData({ joinSubmitting: false });
+    } else {
+      this.setData({ loading: false });
+    }
   },
 
   async loadDrawDetail() {
@@ -560,20 +580,96 @@ Page({
       wx.navigateTo({ url: '/pages/login/login' });
       return;
     }
-    wx.showLoading({ title: '参与中...', mask: true });
+    if (this.data.joinSubmitting) return;
+    this.setData({ joinSubmitting: true });
+    wx.hideLoading();
     try {
       const res = await drawApi.joinDraw(this.data.drawId);
-      wx.hideLoading();
+      if (!this._unloaded) {
+        wx.hideLoading();
+      }
       if (res.code === 0) {
-        wx.showToast({ title: '参与成功', icon: 'success' });
-        this.loadMyCodes();
-        this.resetJoinRecords();
-        this.loadJoinRecords(true);
-      } else {
+        if (!this._unloaded) {
+          const codes = res.data || [];
+          if (codes.length > 0) {
+            this.setData({
+              joined: true,
+              myCodes: codes,
+              codeCount: codes.length,
+              joinSubmitting: false
+            });
+            this.resetJoinRecords();
+            this.loadJoinRecords(true);
+          } else {
+            this.startJoinResultPolling();
+          }
+        }
+        const app = getApp();
+        if (app && app.refreshUnreadCount) {
+          app.refreshUnreadCount();
+        }
+      } else if (!this._unloaded) {
         wx.showToast({ title: res.msg || '参与失败', icon: 'none' });
       }
     } catch (e) {
-      wx.hideLoading();
+      if (!this._unloaded) {
+        wx.hideLoading();
+      }
+      if (!this._unloaded) {
+        wx.showToast({ title: '参与失败', icon: 'none' });
+      }
+    }
+    if (!this._unloaded && !this.data.joined && !this._joinPollTimer) {
+      this.setData({ joinSubmitting: false });
+    }
+  },
+
+  startJoinResultPolling() {
+    this.stopJoinResultPolling();
+    var times = 0;
+    this._joinPollTimer = setInterval(async () => {
+      if (this._unloaded) {
+        this.stopJoinResultPolling();
+        return;
+      }
+      times += 1;
+      try {
+        const res = await drawApi.getMyCodes(this.data.drawId);
+        const list = (res.code === 0 && res.data) ? res.data : [];
+        if (list.length > 0) {
+          this.stopJoinResultPolling();
+          this.setData({
+            myCodes: list,
+            joined: true,
+            codeCount: list.length,
+            joinSubmitting: false
+          });
+          this.resetJoinRecords();
+          this.loadJoinRecords(true);
+        }
+      } catch (e) {
+        // The WebSocket notification is the primary completion signal.
+      }
+      if (times >= 15) {
+        this.stopJoinResultPolling();
+        if (!this._unloaded && this.data.joinSubmitting) {
+          this.setData({ joinSubmitting: false });
+        }
+      }
+    }, 2000);
+  },
+
+  stopJoinResultPolling() {
+    if (this._joinPollTimer) {
+      clearInterval(this._joinPollTimer);
+      this._joinPollTimer = null;
+    }
+  },
+
+  handleGlobalNotifyTap() {
+    const app = getApp();
+    if (app && app.handleGlobalNotifyTap) {
+      app.handleGlobalNotifyTap(this);
     }
   },
 
