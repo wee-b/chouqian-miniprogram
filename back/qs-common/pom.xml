@@ -118,6 +118,20 @@
             <version>1.8.8</version>
         </dependency>
 
+        <!-- Sentinel 热点参数限流（按 drawId 控制单活动流量） -->
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-parameter-flow-control</artifactId>
+            <version>1.8.8</version>
+        </dependency>
+
+        <!-- Sentinel Dashboard 通信 -->
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-transport-simple-http</artifactId>
+            <version>1.8.8</version>
+        </dependency>
+
         <!-- Spring AOP（注解切面需要） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
